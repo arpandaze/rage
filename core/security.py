@@ -7,7 +7,7 @@ import secrets
 from pydantic import BaseModel
 import time
 from enum import Enum
-from schemas import VerificationToken
+from schemas import VerificationToken, AccessToken
 from core import TokenType
 from fastapi.encoders import jsonable_encoder
 import json
@@ -32,9 +32,9 @@ def encode(data):
 
 def decode(token):
     if settings.ENCRYPT_TOKEN:
-        jw_token = jwe.decrypt(token, settings.SECRET_KEY)
+        token = jwe.decrypt(token, settings.SECRET_KEY)
 
-    return jwt.decode(jw_token, settings.SECRET_KEY, algorithms="HS256")
+    return jwt.decode(token, settings.SECRET_KEY, algorithms="HS256")
 
 
 async def generate_email_verification_token(user):
@@ -43,6 +43,18 @@ async def generate_email_verification_token(user):
     payload = VerificationToken(
         iat=current_timestamp,
         exp=current_timestamp + settings.EMAIL_VERIFICATION_TIMEOUT,
+        sub=str(user.uuid),
+    )
+
+    return encode(payload)
+
+
+async def generate_access_token(user):
+    current_timestamp = int(time.time())
+
+    payload = AccessToken(
+        iat=current_timestamp,
+        exp=current_timestamp + settings.ACCESS_TOKEN_TIMEOUT,
         sub=str(user.uuid),
     )
 

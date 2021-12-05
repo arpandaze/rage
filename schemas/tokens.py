@@ -8,5 +8,9 @@ class TokenBase(BaseModel):
     rid: TokenType
 
 
+
 class VerificationToken(TokenBase):
     rid: TokenType = TokenType.VerificationToken
+
+class AccessToken(TokenBase):
+    rid: TokenType = TokenType.AccessToken

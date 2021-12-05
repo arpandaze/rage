@@ -143,6 +143,7 @@ class Settings(BaseSettings):
         return v
 
     EMAIL_VERIFICATION_TIMEOUT: int = 86400 # seconds
+    ACCESS_TOKEN_TIMEOUT: int = 2592000 # seconds
 
     class Config:
         case_sensitive = True

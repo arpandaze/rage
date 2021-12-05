@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Body
-from fastapi.responses import FileResponse, Response
+from fastapi import APIRouter, Body, Depends, status
+from fastapi.responses import FileResponse, Response, JSONResponse
 from core import settings
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 import os
 import requests
+from core.deps import user_extractor
 
 router = APIRouter()
 
@@ -20,9 +21,9 @@ class Token(BaseModel):
     email: str
 
 
-@router.post("/encode")
-async def encode(data: Token = Body(...)):
-    pass
+@router.post("/protected_ping")
+async def encode(user = Depends(user_extractor)):
+    return JSONResponse(status_code=status.HTTP_200_OK, content={"message": f"Hey, {user.full_name}!"})
 
 @router.get("/static/swagger-ui-bundle.js")
 async def swagger_js():

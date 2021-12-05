@@ -40,5 +40,5 @@ def verify_email(
 def verify_phone(
     db: Session = Depends(get_db), *, verification_data: VerificationData = Body(...)
 ):
-    pass
+    #TODO
     return Response(status_code=status.HTTP_201_CREATED)
