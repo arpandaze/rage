@@ -7,7 +7,7 @@ import secrets
 from pydantic import BaseModel
 import time
 from enum import Enum
-from schemas import VerificationToken, AccessToken
+from schemas import VerificationToken, AccessToken, TOTPAccessToken
 from core import TokenType
 from fastapi.encoders import jsonable_encoder
 import json
@@ -55,6 +55,18 @@ async def generate_access_token(user):
     payload = AccessToken(
         iat=current_timestamp,
         exp=current_timestamp + settings.ACCESS_TOKEN_TIMEOUT,
+        sub=str(user.uuid),
+    )
+
+    return encode(payload)
+
+
+async def generate_totp_access_token(user):
+    current_timestamp = int(time.time())
+
+    payload = TOTPAccessToken(
+        iat=current_timestamp,
+        exp=current_timestamp + settings.TOTP_TIMEOUT,
         sub=str(user.uuid),
     )
 

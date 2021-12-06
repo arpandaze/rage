@@ -144,6 +144,7 @@ class Settings(BaseSettings):
 
     EMAIL_VERIFICATION_TIMEOUT: int = 86400 # seconds
     ACCESS_TOKEN_TIMEOUT: int = 2592000 # seconds
+    TOTP_TIMEOUT: int = 120 # seconds
 
     class Config:
         case_sensitive = True

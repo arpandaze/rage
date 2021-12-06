@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from core import TokenType
 
-class TokenBase(BaseModel):
+class Token(BaseModel):
     iat: int
     exp: int
     sub: str
@@ -9,8 +9,11 @@ class TokenBase(BaseModel):
 
 
 
-class VerificationToken(TokenBase):
+class VerificationToken(Token):
     rid: TokenType = TokenType.VerificationToken
 
-class AccessToken(TokenBase):
+class AccessToken(Token):
     rid: TokenType = TokenType.AccessToken
+
+class TOTPAccessToken(Token):
+    rid: TokenType = TokenType.TOTPAccessToken

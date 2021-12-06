@@ -5,3 +5,4 @@ class TokenType(Enum):
     AccessToken = 1
     VerificationToken = 2
     EmailChangeToken = 3
+    TOTPAccessToken = 4

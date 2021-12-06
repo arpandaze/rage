@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Header
 from fastapi.security import OAuth2, OAuth2PasswordBearer
 from core.db import get_db
 
@@ -43,3 +43,10 @@ async def user_extractor(
         )
 
     return user
+
+
+async def bearer_token(authorization: str = Header(...)):
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+
+    return authorization[7:]
