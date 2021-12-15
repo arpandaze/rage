@@ -1,0 +1,18 @@
+[package]
+name = "actix-backend"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+actix-web = "3"
+
+[dev-dependencies]
+actix-rt = "2"
+reqwest = "0.11.7"
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+path = "src/main.rs"
+name = "actix-backend"
