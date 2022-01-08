@@ -1,0 +1,13 @@
+# Configuration for development
+
+application:
+  host: 127.0.0.1
+  port: 8000
+
+database:
+  host: 127.0.0.1
+  port: 5432
+  username: postuser
+  password: postpass
+  database_name: actix
+  require_ssl: false
