@@ -13,9 +13,16 @@ sqlx = { version = "0.5", default-features = false, features = [ "runtime-actix-
 config = "0.11.0"
 argon2 = { version = "0.3", features = ["std"] }
 rand_core = { version = "0.6", features = ["std"] }
+reqwest = { version = "0.11", default-features = false, features = ["json", "rustls-tls", "cookies"] }
+lettre = { version = "0.10.0-rc.4", features = ["tokio1-native-tls"] }
+handlebars = "4.2.0"
+redis = { version = "0.21.5", features = ["r2d2"] }
+r2d2 = "0.8.9"
 
 [dev-dependencies]
 actix-rt = "2"
+fake = "2.3.0"
+linkify = "0.8.0"
 
 [lib]
 path = "src/lib.rs"

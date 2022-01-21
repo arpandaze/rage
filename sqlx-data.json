@@ -15,5 +15,37 @@
       },
       "nullable": []
     }
+  },
+  "fd153e20cc3349c25a3706e76c9dbc468aa7c68dd72521fb16c6f665e914eecb": {
+    "query": "SELECT id, is_verified, is_active FROM users WHERE email=$1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "is_verified",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 2,
+          "name": "is_active",
+          "type_info": "Bool"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        true,
+        true
+      ]
+    }
   }
 }

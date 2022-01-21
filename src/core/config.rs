@@ -1,24 +1,60 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug)]
+use lettre::transport::smtp::authentication::Credentials;
+use lettre::{AsyncSmtpTransport, Tokio1Executor};
+
+use sqlx::PgPool;
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Settings {
     pub database: DatabaseSettings,
+    pub redis: RedisSettings,
     pub application: ApplicationSettings,
+    pub email: EmailSettings,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ApplicationSettings {
-    pub port: u16,
+    pub protocal: String,
+    pub domain: String,
     pub host: String,
+    pub port: u16,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct DatabaseSettings {
+    pub host: String,
+    pub port: u16,
     pub username: String,
     pub password: String,
-    pub port: u16,
-    pub host: String,
     pub database_name: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct RedisSettings {
+    pub host: String,
+    pub port: u16,
+    pub username: String,
+    pub password: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct EmailSettings {
+    pub smtp_host: String,
+    pub smtp_port: u16,
+    pub smtp_username: String,
+    pub smtp_password: String,
+    pub noreply_email: String,
+}
+
+impl ApplicationSettings {
+    pub fn get_base_url(&self) -> String {
+        if self.port == 80 {
+            return format!("{}://{}", self.protocal, self.domain);
+        } else {
+            return format!("{}://{}:{}", self.protocal, self.domain, self.port);
+        }
+    }
 }
 
 impl DatabaseSettings {
@@ -27,6 +63,45 @@ impl DatabaseSettings {
             "postgres://{}:{}@{}:{}/{}",
             self.username, self.password, self.host, self.port, self.database_name
         );
+    }
+
+    pub async fn get_db_pool(&self) -> PgPool {
+        let connection_pool = PgPool::connect(&self.get_uri())
+            .await
+            .expect("Failed to connect to database!");
+
+        return connection_pool;
+    }
+}
+
+impl RedisSettings {
+    pub fn get_uri(&self) -> String {
+        return format!(
+            "redis://{}:{}@{}:{}",
+            self.username, self.password, self.host, self.port
+        );
+    }
+
+    pub async fn get_redis_pool(&self) -> crate::types::RedisPool {
+        let client = redis::Client::open(self.get_uri()).unwrap();
+
+        let connection_pool = r2d2::Pool::builder().build(client).unwrap();
+
+        return connection_pool;
+    }
+}
+
+impl EmailSettings {
+    pub async fn get_client(&self) -> crate::types::Mailer {
+        let creds = Credentials::new(self.smtp_username.clone(), self.smtp_password.clone());
+
+        let mailer =
+            AsyncSmtpTransport::<Tokio1Executor>::builder_dangerous(self.smtp_host.clone())
+                .port(self.smtp_port.clone())
+                .credentials(creds)
+                .build();
+
+        return mailer;
     }
 }
 
@@ -43,9 +118,7 @@ pub fn get_config() -> Result<Settings, config::ConfigError> {
         .try_into()
         .expect("Failed to detect environment");
 
-    settings.merge(
-        config::File::from(config_dir.join(environment.as_str())).required(true),
-    )?;
+    settings.merge(config::File::from(config_dir.join(environment.as_str())).required(true))?;
 
     // Add in settings from environment variables (with a prefix of APP and '__' as separator)
     // E.g. `APP_APPLICATION__PORT=5001 would set `Settings.application.port`

@@ -11,3 +11,16 @@ database:
   password: postpass
   database_name: actix
   require_ssl: false
+
+redis:
+  host: 127.0.0.1
+  port: 6379
+  username: default 
+  password: redispass
+
+email:
+  smtp_host: 127.0.0.1
+  smtp_port: 1025
+  smtp_username: smtpuser
+  smtp_password: smtppass
+  noreply_email: Actix <noreply@actixapp.local>
