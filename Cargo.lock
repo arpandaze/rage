@@ -9,19 +9,22 @@ dependencies = [
  "actix-rt",
  "actix-web",
  "argon2",
+ "base64",
  "config",
+ "deadpool-redis",
  "derive_more",
  "fake",
  "handlebars",
  "lettre",
  "linkify",
- "r2d2",
+ "rand 0.8.4",
  "rand_core 0.6.3",
  "redis",
  "reqwest",
  "serde 1.0.131",
  "serde_json",
  "sqlx",
+ "uuid",
  "validator",
 ]
 
@@ -432,7 +435,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b2b2f5d0ee456f3928812dfc8c6d9a1d592b98678f6d56db9b0cd2b7bc6c8db5"
 dependencies = [
  "bytes",
+ "futures-core",
  "memchr",
+ "pin-project-lite",
+ "tokio",
+ "tokio-util",
 ]
 
 [[package]]
@@ -597,6 +604,33 @@ checksum = "b1d1a86f49236c215f271d40892d5fc950490551400b02ef360692c29815c714"
 dependencies = [
  "generic-array 0.14.4",
  "subtle",
+]
+
+[[package]]
+name = "deadpool"
+version = "0.8.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ef82259c587bceda08349f28ff00f69ae4c897898f254140af6021eb218e8232"
+dependencies = [
+ "async-trait",
+ "config",
+ "num_cpus",
+ "serde 1.0.131",
+ "tokio",
+]
+
+[[package]]
+name = "deadpool-redis"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "58f31ab753d882c470926de2b34f42ed03e6e0661b609586825391f6560113db"
+dependencies = [
+ "async-trait",
+ "config",
+ "deadpool",
+ "log",
+ "redis",
+ "serde 1.0.131",
 ]
 
 [[package]]
@@ -1651,17 +1685,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3fee2dce59f7a43418e3382c766554c614e06a552d53a8f07ef499ea4b332c0f"
 
 [[package]]
-name = "r2d2"
-version = "0.8.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "545c5bc2b880973c9c10e4067418407a0ccaa3091781d1671d46eb35107cb26f"
-dependencies = [
- "log",
- "parking_lot",
- "scheduled-thread-pool",
-]
-
-[[package]]
 name = "rand"
 version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1749,12 +1772,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1a80b5f38d7f5a020856a0e16e40a9cfabf88ae8f0e4c2dcd8a3114c1e470852"
 dependencies = [
  "async-trait",
+ "bytes",
  "combine",
  "dtoa",
+ "futures-util",
  "itoa 0.4.8",
  "percent-encoding",
- "r2d2",
+ "pin-project-lite",
  "sha1",
+ "tokio",
+ "tokio-util",
  "url",
 ]
 
@@ -1930,15 +1957,6 @@ checksum = "8f05ba609c234e60bee0d547fe94a4c7e9da733d1c962cf6e59efa4cd9c8bc75"
 dependencies = [
  "lazy_static",
  "winapi",
-]
-
-[[package]]
-name = "scheduled-thread-pool"
-version = "0.2.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dc6f74fd1204073fa02d5d5d68bec8021be4c38690b61264b2fdb48083d0e7d7"
-dependencies = [
- "parking_lot",
 ]
 
 [[package]]

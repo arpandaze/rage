@@ -3,6 +3,10 @@ use serde::{Deserialize, Serialize};
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::{AsyncSmtpTransport, Tokio1Executor};
 
+use deadpool_redis::{
+    redis::cmd, Config as RedisConfig, Connection, Pool, PoolConfig, PoolError, Runtime,
+};
+
 use sqlx::PgPool;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -82,12 +86,10 @@ impl RedisSettings {
         );
     }
 
-    pub async fn get_redis_pool(&self) -> crate::types::RedisPool {
-        let client = redis::Client::open(self.get_uri()).unwrap();
-
-        let connection_pool = r2d2::Pool::builder().build(client).unwrap();
-
-        return connection_pool;
+    pub async fn get_redis_pool(&self) -> deadpool_redis::Pool {
+        let mut redis_config = RedisConfig::from_url(self.get_uri());
+        redis_config.pool = Some(PoolConfig::new(32));
+        return redis_config.create_pool().unwrap();
     }
 }
 

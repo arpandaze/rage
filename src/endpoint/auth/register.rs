@@ -1,12 +1,13 @@
 use crate::core::config::Settings;
 use crate::core::errors::StandardError;
-use crate::core::security::hash_password;
+use crate::core::security::{generate_email_token, hash_password};
 use crate::core::Response;
 use crate::types::Mailer;
 
 use actix_web::http::StatusCode;
 use actix_web::{HttpResponse, Responder};
 use handlebars::Handlebars;
+use redis::AsyncCommands;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sqlx::PgPool;
@@ -38,6 +39,7 @@ pub async fn register_endpoint(
     form_data: actix_web::web::Form<RegisterData>,
     db_pool: actix_web::web::Data<PgPool>,
     mail_client: actix_web::web::Data<Mailer>,
+    redis_pool: actix_web::web::Data<deadpool_redis::Pool>,
     configs: actix_web::web::Data<Settings>,
 ) -> Response<impl Responder> {
     form_data.validate()?;
@@ -58,10 +60,11 @@ pub async fn register_endpoint(
         .into());
     }
 
-    sqlx::query!(
+    let user = sqlx::query!(
         r#"INSERT INTO public.users
         (first_name, middle_name, last_name, email, hashed_password)
         VALUES($1,$2,$3,$4,$5)
+        RETURNING id
     "#,
         form_data.first_name,
         form_data.middle_name,
@@ -69,8 +72,16 @@ pub async fn register_endpoint(
         form_data.email,
         hash_password(&form_data.password)?,
     )
-    .execute(db_pool.as_ref())
+    .fetch_one(db_pool.as_ref())
     .await?;
+
+    let verification_token = generate_email_token()?;
+
+    let mut redis_connection = redis_pool.get().await?;
+
+    redis_connection
+        .set::<&str, &String, ()>(&verification_token, &user.id.to_string())
+        .await?;
 
     let template_handler = Handlebars::new();
 
@@ -79,7 +90,7 @@ pub async fn register_endpoint(
             include_str!("../../../templates/verification-email.html"),
             &json!({
                 "username": form_data.first_name.clone(),
-                "link": format!("{}/verify?token={}", configs.application.get_base_url(), "token"),
+                "link": format!("{}/verify?token={}", configs.application.get_base_url(), verification_token),
             }),
         )
         .unwrap();

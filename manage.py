@@ -1,5 +1,9 @@
 import sys
 import os
+import platform
+import subprocess
+
+system = platform.system()
 
 def main(args):
     if len(args) == 1:
@@ -8,8 +12,13 @@ def main(args):
         return None
 
     if args[1] == "dk":
-        os.system("./scripts/redis.sh")
-        os.system("./scripts/db.sh")
+        if(system=="Darwin"):
+            os.system("mailhog > /dev/null 2>&1 &")
+            os.system("redis-server --appendonly yes --requirepass redispass > /dev/null 2>&1 &")
+            os.system("export DATABASE_URL=postgres://postuser:postpass@localhost:5432/actix && sqlx database create && sqlx migrate run")
+        else:
+            os.system("./scripts/redis.sh")
+            os.system("./scripts/db.sh")
 
     elif args[1] == "start":
         os.system("cargo watch -x 'run --bin actix-backend'")

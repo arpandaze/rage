@@ -12,12 +12,15 @@ derive_more = "0.99"
 sqlx = { version = "0.5", default-features = false, features = [ "runtime-actix-rustls", "macros", "postgres", "uuid", "chrono", "migrate", "offline"] }
 config = "0.11.0"
 argon2 = { version = "0.3", features = ["std"] }
+rand = "0.8.4"
 rand_core = { version = "0.6", features = ["std"] }
 reqwest = { version = "0.11", default-features = false, features = ["json", "rustls-tls", "cookies"] }
+base64 = "0.13.0"
 lettre = { version = "0.10.0-rc.4", features = ["tokio1-native-tls"] }
 handlebars = "4.2.0"
-redis = { version = "0.21.5", features = ["r2d2"] }
-r2d2 = "0.8.9"
+deadpool-redis = { version = "0.9", features = ["rt_tokio_1"] }
+redis = { version = "0.21", features = ["tokio-comp"] }
+uuid = "0.8"
 
 [dev-dependencies]
 actix-rt = "2"

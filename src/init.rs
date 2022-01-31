@@ -5,7 +5,7 @@ use actix_web::{App, HttpServer};
 use crate::core::config::Settings;
 use crate::endpoint::auth::auth_endpoints;
 use crate::endpoint::utils::utils_endpoints;
-use crate::types::{ Mailer, RedisPool };
+use crate::types::Mailer;
 use sqlx::PgPool;
 use std::net::TcpListener;
 
@@ -13,7 +13,7 @@ pub async fn run(
     configs: Settings,
     tcp_listener: TcpListener,
     db_pool: PgPool,
-    redis_pool: RedisPool,
+    redis_pool: deadpool_redis::Pool,
     mailer: Mailer,
 ) -> Result<(), std::io::Error> {
     let configs_data = Data::new(configs);

@@ -1,9 +1,15 @@
 {
   "db": "PostgreSQL",
-  "4a1b49567491b68795a380b34cbdc0560c678db54f83cf1cc900f9191713ef39": {
-    "query": "INSERT INTO public.users\n        (first_name, middle_name, last_name, email, hashed_password)\n        VALUES($1,$2,$3,$4,$5)\n    ",
+  "51fd3f9029f4ca83b5d2a81650152f1f99a57c7937ee16d1d45d18477fdab36b": {
+    "query": "INSERT INTO public.users\n        (first_name, middle_name, last_name, email, hashed_password)\n        VALUES($1,$2,$3,$4,$5)\n        RETURNING id\n    ",
     "describe": {
-      "columns": [],
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Uuid"
+        }
+      ],
       "parameters": {
         "Left": [
           "Varchar",
@@ -11,6 +17,21 @@
           "Varchar",
           "Varchar",
           "Varchar"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "ec8b1f4353dc07b4a79c3ed60280d13c1ec870ed77f60aa0ce479fb3e2545387": {
+    "query": "\n            UPDATE users\n            SET is_verified=$1\n            WHERE id=$2::uuid;",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Bool",
+          "Uuid"
         ]
       },
       "nullable": []

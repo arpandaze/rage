@@ -30,6 +30,15 @@ pub enum Errors {
     #[display(fmt = "SMTP Error: {}", _0)]
     SMTPError(lettre::transport::smtp::Error),
 
+    #[display(fmt = "RNG Error: {}", _0)]
+    RNGError(rand_core::Error),
+
+    #[display(fmt = "Redis Pool Error: {}", _0)]
+    RedisPoolError(deadpool_redis::PoolError),
+
+    #[display(fmt = "Redis Error: {}", _0)]
+    RedisError(redis::RedisError),
+
     #[display(fmt = "Standard Error: {}", _0)]
     StandardError(StandardError),
 }
@@ -55,6 +64,24 @@ impl From<argon2::password_hash::Error> for Errors {
 impl From<lettre::transport::smtp::Error> for Errors {
     fn from(error: lettre::transport::smtp::Error) -> Self {
         return Errors::SMTPError(error);
+    }
+}
+
+impl From<rand_core::Error> for Errors {
+    fn from(error: rand_core::Error) -> Self {
+        return Errors::RNGError(error);
+    }
+}
+
+impl From<deadpool_redis::PoolError> for Errors {
+    fn from(error: deadpool_redis::PoolError) -> Self {
+        return Errors::RedisPoolError(error);
+    }
+}
+
+impl From<redis::RedisError> for Errors {
+    fn from(error: redis::RedisError) -> Self {
+        return Errors::RedisError(error);
     }
 }
 
@@ -105,6 +132,33 @@ impl ResponseError for Errors {
                 ),
             ),
 
+            Self::RNGError(_) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                json!(
+                    {
+                        "messsage": "Unexpected RNG error",
+                    }
+                ),
+            ),
+
+            Self::RedisPoolError(_) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                json!(
+                    {
+                        "messsage": "Unexpected pool error",
+                    }
+                ),
+            ),
+
+            Self::RedisError(_) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                json!(
+                    {
+                        "messsage": "Unexpected cache error",
+                    }
+                ),
+            ),
+
             Self::StandardError(e) => (
                 e.status_code,
                 json!(
@@ -117,5 +171,15 @@ impl ResponseError for Errors {
         };
 
         return HttpResponse::build(status_code).json(body);
+    }
+}
+
+impl Errors {
+    pub fn standard(id: u16, message: &str, status_code: StatusCode) -> Errors {
+        return Errors::StandardError(StandardError {
+            id: id,
+            detail: message.to_string(),
+            status_code: status_code,
+        });
     }
 }
