@@ -4,7 +4,7 @@ use lettre::transport::smtp::authentication::Credentials;
 use lettre::{AsyncSmtpTransport, Tokio1Executor};
 
 use deadpool_redis::{
-    redis::cmd, Config as RedisConfig, Connection, Pool, PoolConfig, PoolError, Runtime,
+    Config as RedisConfig, PoolConfig
 };
 
 use sqlx::PgPool;
@@ -14,6 +14,7 @@ pub struct Settings {
     pub database: DatabaseSettings,
     pub redis: RedisSettings,
     pub application: ApplicationSettings,
+    pub ttl: TTLSettings,
     pub email: EmailSettings,
 }
 
@@ -23,6 +24,14 @@ pub struct ApplicationSettings {
     pub domain: String,
     pub host: String,
     pub port: u16,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct TTLSettings {
+    pub session_token_short: usize,
+    pub session_token_long: usize,
+    pub verification_token: usize,
+    pub password_reset: usize,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -89,7 +98,9 @@ impl RedisSettings {
     pub async fn get_redis_pool(&self) -> deadpool_redis::Pool {
         let mut redis_config = RedisConfig::from_url(self.get_uri());
         redis_config.pool = Some(PoolConfig::new(32));
-        return redis_config.create_pool().unwrap();
+        return redis_config
+            .create_pool(Some(deadpool_redis::Runtime::Tokio1))
+            .unwrap();
     }
 }
 

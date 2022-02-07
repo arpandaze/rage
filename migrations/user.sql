@@ -11,5 +11,5 @@ CREATE TABLE users (
   is_active BOOLEAN DEFAULT(True),
   user_type SMALLINT NOT NULL DEFAULT(0),
   access_zones SMALLINT[],
-  created_on TIMESTAMP without time zone DEFAULT NOW()
+  created_on TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
 );

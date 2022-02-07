@@ -21,10 +21,10 @@ def main(args):
             os.system("./scripts/db.sh")
 
     elif args[1] == "start":
-        os.system("cargo watch -x 'run --bin actix-backend'")
+        os.system("cargo watch -x 'run --bin rage'")
 
     elif args[1] == "mig":
-        os.system("export DATABASE_URL=postgres://postuser:postpass@localhost:5432/actix && cargo sqlx prepare -- --bin actix-backend")
+        os.system("export DATABASE_URL=postgres://postuser:postpass@localhost:5432/actix && cargo sqlx prepare -- --bin rage")
      
 
 if __name__ == "__main__":

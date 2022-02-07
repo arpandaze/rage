@@ -5,9 +5,9 @@ use serde_json::json;
 
 #[derive(Debug, Error)]
 pub struct StandardError {
-    pub id: u16,
     pub detail: String,
     pub status_code: StatusCode,
+    pub delete_cookie: Option<bool>,
 }
 
 impl std::fmt::Display for StandardError {
@@ -41,6 +41,9 @@ pub enum Errors {
 
     #[display(fmt = "Standard Error: {}", _0)]
     StandardError(StandardError),
+
+    #[display(fmt = "Invalid Session Error: {}", _0)]
+    ConfiguredError(StandardError),
 }
 
 impl From<validator::ValidationErrors> for Errors {
@@ -163,11 +166,27 @@ impl ResponseError for Errors {
                 e.status_code,
                 json!(
                     {
-                        "id": e.id,
                         "message": e.detail,
                     }
                 ),
             ),
+
+            Self::ConfiguredError(e) => {
+                let json_body = json!(
+                    {
+                        "message": e.detail,
+                    }
+                );
+
+                let mut response = HttpResponse::build(StatusCode::UNAUTHORIZED).json(json_body);
+
+                if e.delete_cookie.unwrap() == true {
+                    let removal_cookie = actix_web::cookie::Cookie::new("session", "");
+                    response.add_removal_cookie(&removal_cookie).unwrap();
+                }
+
+                return response;
+            }
         };
 
         return HttpResponse::build(status_code).json(body);
@@ -175,11 +194,19 @@ impl ResponseError for Errors {
 }
 
 impl Errors {
-    pub fn standard(id: u16, message: &str, status_code: StatusCode) -> Errors {
+    pub fn standard(message: &str, status_code: StatusCode) -> Errors {
         return Errors::StandardError(StandardError {
-            id: id,
             detail: message.to_string(),
             status_code: status_code,
+            delete_cookie: None,
+        });
+    }
+
+    pub fn configured(message: &str, status_code: StatusCode, delete_cookie: bool) -> Errors {
+        return Errors::ConfiguredError(StandardError {
+            detail: message.to_string(),
+            status_code: status_code,
+            delete_cookie: Some(delete_cookie),
         });
     }
 }

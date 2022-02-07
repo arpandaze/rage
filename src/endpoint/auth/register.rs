@@ -1,20 +1,19 @@
-use crate::core::config::Settings;
-use crate::core::errors::StandardError;
 use crate::core::security::{generate_email_token, hash_password};
-use crate::core::Response;
-use crate::types::Mailer;
+use crate::types::*;
 
-use actix_web::http::StatusCode;
-use actix_web::{HttpResponse, Responder};
+use actix_web::{
+    http::StatusCode,
+    web::{Data, Form},
+    HttpResponse,
+};
 use handlebars::Handlebars;
+use lettre::{AsyncTransport, Message};
 use redis::AsyncCommands;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sqlx::PgPool;
 use std::option::Option;
 use validator::Validate;
-
-use lettre::{AsyncTransport, Message};
 
 #[derive(Validate, Serialize, Deserialize)]
 pub struct RegisterData {
@@ -36,36 +35,36 @@ pub struct RegisterData {
 
 // TODO: Verification link should point to frontend verification page
 pub async fn register_endpoint(
-    form_data: actix_web::web::Form<RegisterData>,
-    db_pool: actix_web::web::Data<PgPool>,
-    mail_client: actix_web::web::Data<Mailer>,
-    redis_pool: actix_web::web::Data<deadpool_redis::Pool>,
-    configs: actix_web::web::Data<Settings>,
-) -> Response<impl Responder> {
+    form_data: Form<RegisterData>,
+    db_pool: Data<PgPool>,
+    mail_client: Data<Mailer>,
+    redis_pool: Data<RedisPool>,
+    configs: Data<Settings>,
+) -> Response {
     form_data.validate()?;
 
     let existing_user = sqlx::query!(
-        "SELECT id, is_verified, is_active FROM users WHERE email=$1",
+        "SELECT id FROM users WHERE email=$1",
         &form_data.email
     )
     .fetch_optional(db_pool.as_ref())
     .await?;
 
     if existing_user.is_some() {
-        return Err(StandardError {
-            id: 1,
-            detail: String::from("User with the same email already exists!"),
-            status_code: StatusCode::CONFLICT,
-        }
-        .into());
+        return Err(Errors::standard(
+            "User with the same email already exists!",
+            StatusCode::CONFLICT,
+        ));
+        
     }
 
     let user = sqlx::query!(
-        r#"INSERT INTO public.users
-        (first_name, middle_name, last_name, email, hashed_password)
-        VALUES($1,$2,$3,$4,$5)
-        RETURNING id
-    "#,
+        r#"
+            INSERT INTO users
+            (first_name, middle_name, last_name, email, hashed_password)
+            VALUES($1,$2,$3,$4,$5)
+            RETURNING id
+        "#,
         form_data.first_name,
         form_data.middle_name,
         form_data.last_name,
@@ -79,8 +78,10 @@ pub async fn register_endpoint(
 
     let mut redis_connection = redis_pool.get().await?;
 
+    let key = format!("evtoken_{}", verification_token);
+
     redis_connection
-        .set::<&str, &String, ()>(&verification_token, &user.id.to_string())
+        .set_ex(&key, &user.id.to_string(), configs.ttl.verification_token)
         .await?;
 
     let template_handler = Handlebars::new();
@@ -96,7 +97,7 @@ pub async fn register_endpoint(
         .unwrap();
 
     let email = Message::builder()
-        .from("noreply@domain.tld".parse().unwrap())
+        .from(configs.email.noreply_email.parse().unwrap())
         .to(form_data.email.parse().unwrap())
         .subject("Verification Email")
         .header(lettre::message::header::ContentType::TEXT_HTML)
@@ -105,5 +106,15 @@ pub async fn register_endpoint(
 
     let _ = mail_client.as_ref().send(email).await?;
 
-    return Ok(HttpResponse::Ok().finish());
+    let obj = json!(
+        {
+            "message": "Account successfully created. Check your email for verification link!"
+        }
+    );
+
+    return Ok(
+        HttpResponse::Created()
+              .json(obj)
+    );
+    
 }

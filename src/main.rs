@@ -1,5 +1,5 @@
-use actix_backend::core::config::get_config;
-use actix_backend::init::run;
+use rage::core::config::get_config;
+use rage::init::run;
 use std::net::TcpListener;
 
 #[actix_web::main]

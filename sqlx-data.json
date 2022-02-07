@@ -1,7 +1,64 @@
 {
   "db": "PostgreSQL",
-  "51fd3f9029f4ca83b5d2a81650152f1f99a57c7937ee16d1d45d18477fdab36b": {
-    "query": "INSERT INTO public.users\n        (first_name, middle_name, last_name, email, hashed_password)\n        VALUES($1,$2,$3,$4,$5)\n        RETURNING id\n    ",
+  "452b74de058ed07eeddceb4c9a176a3ae6ff35a9d701b6dfbaab9f59ef392960": {
+    "query": "SELECT id, two_fa_secret, hashed_password, is_verified, is_active FROM users WHERE email=$1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "two_fa_secret",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "hashed_password",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "is_verified",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 4,
+          "name": "is_active",
+          "type_info": "Bool"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        true,
+        true,
+        true,
+        true
+      ]
+    }
+  },
+  "56de03a4b99cbae7b1e334c0bc294d2ed1fd62e55182273cd54566e3370261ff": {
+    "query": "\n            UPDATE users\n            SET is_verified=$1\n            WHERE id=$2::uuid;\n        ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Bool",
+          "Uuid"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "79ef1f5a8e7dd0c8015fdd86e863a9eefbbbddf3113960a68cd723f6f8363054": {
+    "query": "\n            INSERT INTO users\n            (first_name, middle_name, last_name, email, hashed_password)\n            VALUES($1,$2,$3,$4,$5)\n            RETURNING id\n        ",
     "describe": {
       "columns": [
         {
@@ -24,37 +81,14 @@
       ]
     }
   },
-  "ec8b1f4353dc07b4a79c3ed60280d13c1ec870ed77f60aa0ce479fb3e2545387": {
-    "query": "\n            UPDATE users\n            SET is_verified=$1\n            WHERE id=$2::uuid;",
-    "describe": {
-      "columns": [],
-      "parameters": {
-        "Left": [
-          "Bool",
-          "Uuid"
-        ]
-      },
-      "nullable": []
-    }
-  },
-  "fd153e20cc3349c25a3706e76c9dbc468aa7c68dd72521fb16c6f665e914eecb": {
-    "query": "SELECT id, is_verified, is_active FROM users WHERE email=$1",
+  "a3018327ca3d4d84616113ad8e2e35a14d38f1c1d170040e34fa44da1837545a": {
+    "query": "SELECT id FROM users WHERE email=$1",
     "describe": {
       "columns": [
         {
           "ordinal": 0,
           "name": "id",
           "type_info": "Uuid"
-        },
-        {
-          "ordinal": 1,
-          "name": "is_verified",
-          "type_info": "Bool"
-        },
-        {
-          "ordinal": 2,
-          "name": "is_active",
-          "type_info": "Bool"
         }
       ],
       "parameters": {
@@ -63,9 +97,7 @@
         ]
       },
       "nullable": [
-        false,
-        true,
-        true
+        false
       ]
     }
   }

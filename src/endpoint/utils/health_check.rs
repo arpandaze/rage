@@ -1,7 +1,8 @@
-use crate::core::Response;
-use actix_web::{HttpRequest, HttpResponse, Responder};
+use crate::types::*;
 
-pub async fn health_check_endpoint(_req: HttpRequest) -> Response<impl Responder> {
+use actix_web::HttpResponse;
+
+pub async fn health_check_endpoint() -> Response {
     return Ok(HttpResponse::Ok()
         .content_type("application/health+json")
         .body(r#"{ "status": "ok" }"#));
