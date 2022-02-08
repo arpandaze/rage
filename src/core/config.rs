@@ -1,11 +1,11 @@
 use serde::{Deserialize, Serialize};
 
+use lazy_static::lazy_static;
+
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::{AsyncSmtpTransport, Tokio1Executor};
 
-use deadpool_redis::{
-    Config as RedisConfig, PoolConfig
-};
+use deadpool_redis::{Config as RedisConfig, PoolConfig};
 
 use sqlx::PgPool;
 
@@ -169,4 +169,8 @@ impl TryFrom<String> for Environment {
             )),
         }
     }
+}
+
+lazy_static! {
+    pub static ref CONFIG: Settings = get_config().expect("Couldn't read the configuration file!");
 }

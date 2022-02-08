@@ -58,34 +58,30 @@ pub fn verify_password(
         .is_ok());
 }
 
-// TODO: Replace with procedural
+// MAYBE: Replace with procedural macro
+#[inline(always)]
 pub async fn get_user(
     req: &actix_web::web::HttpRequest,
     redis_pool: &RedisPool,
 ) -> Result<uuid::Uuid, Errors> {
-    let cookie = req.cookie("session");
+    match req.cookie("session") {
+        None => {
+            return Err(Errors::standard(
+                "Please login before accessing this endpoint!",
+                StatusCode::UNAUTHORIZED,
+            ));
+        }
 
-    if cookie.is_none() {
-        return Err(Errors::standard(
-            "Please login before accessing this endpoint!",
-            StatusCode::UNAUTHORIZED,
-        ));
+        Some(cookie) => {
+            let mut redis_connection = redis_pool.get().await?;
+
+            let user_id: Option<String> = redis_connection.get(cookie.value()).await?;
+
+            if user_id.is_none() {
+                return Err(Errors::InvalidSessionError);
+            }
+
+            Ok(uuid::Uuid::parse_str(user_id.unwrap().as_str()).unwrap())
+        }
     }
-
-    let mut redis_connection = redis_pool.get().await?;
-
-    let user_id: Option<String> = redis_connection
-        .get(&cookie.unwrap().to_string())
-        .await
-        .unwrap();
-
-    if user_id.is_none() {
-        return Err(Errors::configured(
-            "Invalid or expired session",
-            StatusCode::UNAUTHORIZED,
-            true,
-        ));
-    }
-
-    Ok(uuid::Uuid::parse_str(user_id.unwrap().as_str()).unwrap())
 }

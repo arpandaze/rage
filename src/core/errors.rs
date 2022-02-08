@@ -2,12 +2,12 @@ use actix_web::http::StatusCode;
 use actix_web::{HttpResponse, ResponseError};
 use derive_more::{Display, Error};
 use serde_json::json;
+use crate::core::config::CONFIG;
 
 #[derive(Debug, Error)]
 pub struct StandardError {
     pub detail: String,
     pub status_code: StatusCode,
-    pub delete_cookie: Option<bool>,
 }
 
 impl std::fmt::Display for StandardError {
@@ -42,8 +42,8 @@ pub enum Errors {
     #[display(fmt = "Standard Error: {}", _0)]
     StandardError(StandardError),
 
-    #[display(fmt = "Invalid Session Error: {}", _0)]
-    ConfiguredError(StandardError),
+    #[display(fmt = "Invalid Session Error")]
+    InvalidSessionError,
 }
 
 impl From<validator::ValidationErrors> for Errors {
@@ -171,19 +171,21 @@ impl ResponseError for Errors {
                 ),
             ),
 
-            Self::ConfiguredError(e) => {
+            Self::InvalidSessionError => {
                 let json_body = json!(
                     {
-                        "message": e.detail,
+                        "message": "Invalid or expired session",
                     }
                 );
 
                 let mut response = HttpResponse::build(StatusCode::UNAUTHORIZED).json(json_body);
 
-                if e.delete_cookie.unwrap() == true {
-                    let removal_cookie = actix_web::cookie::Cookie::new("session", "");
-                    response.add_removal_cookie(&removal_cookie).unwrap();
-                }
+                let cookie_to_remove = actix_web::cookie::Cookie::build("session", "")
+                    .domain(CONFIG.application.domain.to_owned())
+                    .path("/")
+                    .finish();
+
+                response.add_removal_cookie(&cookie_to_remove).unwrap();
 
                 return response;
             }
@@ -198,15 +200,6 @@ impl Errors {
         return Errors::StandardError(StandardError {
             detail: message.to_string(),
             status_code: status_code,
-            delete_cookie: None,
-        });
-    }
-
-    pub fn configured(message: &str, status_code: StatusCode, delete_cookie: bool) -> Errors {
-        return Errors::ConfiguredError(StandardError {
-            detail: message.to_string(),
-            status_code: status_code,
-            delete_cookie: Some(delete_cookie),
         });
     }
 }
