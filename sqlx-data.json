@@ -1,0 +1,104 @@
+{
+  "db": "PostgreSQL",
+  "452b74de058ed07eeddceb4c9a176a3ae6ff35a9d701b6dfbaab9f59ef392960": {
+    "query": "SELECT id, two_fa_secret, hashed_password, is_verified, is_active FROM users WHERE email=$1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "two_fa_secret",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "hashed_password",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "is_verified",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 4,
+          "name": "is_active",
+          "type_info": "Bool"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        true,
+        true,
+        true,
+        true
+      ]
+    }
+  },
+  "56de03a4b99cbae7b1e334c0bc294d2ed1fd62e55182273cd54566e3370261ff": {
+    "query": "\n            UPDATE users\n            SET is_verified=$1\n            WHERE id=$2::uuid;\n        ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Bool",
+          "Uuid"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "79ef1f5a8e7dd0c8015fdd86e863a9eefbbbddf3113960a68cd723f6f8363054": {
+    "query": "\n            INSERT INTO users\n            (first_name, middle_name, last_name, email, hashed_password)\n            VALUES($1,$2,$3,$4,$5)\n            RETURNING id\n        ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Uuid"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Varchar"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "a3018327ca3d4d84616113ad8e2e35a14d38f1c1d170040e34fa44da1837545a": {
+    "query": "SELECT id FROM users WHERE email=$1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Uuid"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  }
+}
