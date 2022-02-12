@@ -88,7 +88,7 @@ pub async fn register_endpoint(
 
     let content = template_handler
         .render_template(
-            include_str!("../../../templates/verification-email.html"),
+            include_str!("../../../templates/verification-email-web.html"),
             &json!({
                 "username": form_data.first_name.clone(),
                 "link": format!("{}/verify?token={}", configs.application.get_base_url(), verification_token),
