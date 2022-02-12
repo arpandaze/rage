@@ -34,6 +34,14 @@ pub fn generate_email_token() -> Result<String, crate::core::Errors> {
     return Ok(encode_config(session_token, base64::URL_SAFE_NO_PAD));
 }
 
+pub fn generate_reset_token() -> Result<String, crate::core::Errors> {
+    let mut session_token = [0u8; 64];
+
+    OsRng.try_fill_bytes(&mut session_token)?;
+
+    return Ok(encode_config(session_token, base64::URL_SAFE_NO_PAD));
+}
+
 #[inline(always)]
 pub fn hash_password(password: &String) -> Result<String, crate::core::Errors> {
     let password = password.as_bytes();
