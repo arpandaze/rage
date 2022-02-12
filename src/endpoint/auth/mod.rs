@@ -19,7 +19,7 @@ pub fn auth_endpoints(cfg: &mut web::ServiceConfig) {
             .service(web::resource("/register").route(web::post().to(register_endpoint)))
             .service(web::resource("/verify").route(web::post().to(verify_endpoint)))
             .service(web::resource("/login").route(web::post().to(login_endpoint)))
-            .service(web::resource("/forgot").route(web::post().to(login_endpoint)))
-            .service(web::resource("/reset").route(web::post().to(login_endpoint)))
+            .service(web::resource("/forgot").route(web::post().to(forgot_password)))
+            .service(web::resource("/reset").route(web::post().to(reset_password)))
     );
 }
