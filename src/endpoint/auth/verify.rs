@@ -25,32 +25,36 @@ pub async fn verify_endpoint(
 
     let key = format!("evtoken_{}", &form_data.token);
 
-    let user_id: Option<String> = redis_conn.get_del(key).await?;
+    let user_id_opt: Option<String> = redis_conn.get_del(key).await?;
 
-    if user_id.is_none() {
-        return Err(Errors::standard(
-            "Invalid verification token",
-            StatusCode::UNAUTHORIZED,
-        ));
-    }
-
-    sqlx::query!(
-        r#"
-            UPDATE users
-            SET is_verified=$1
-            WHERE id=$2::uuid;
-        "#,
-        true,
-        Uuid::parse_str(&user_id.unwrap()).unwrap(),
-    )
-    .execute(db_pool.as_ref())
-    .await?;
-
-    let obj = json!(
-        {
-            "message": "Account has been successfully verified!"
+    match user_id_opt {
+        None => {
+            return Err(Errors::standard(
+                "Invalid verification token",
+                StatusCode::UNAUTHORIZED,
+            ));
         }
-    );
 
-    return Ok(HttpResponse::Ok().json(obj));
+        Some(user_id) => {
+            sqlx::query!(
+                r#"
+                    UPDATE users
+                    SET is_verified=$1
+                    WHERE id=$2::uuid;
+                "#,
+                true,
+                Uuid::parse_str(&user_id).unwrap(),
+            )
+            .execute(db_pool.as_ref())
+            .await?;
+
+            let obj = json!(
+                {
+                    "message": "Account has been successfully verified!"
+                }
+            );
+
+            return Ok(HttpResponse::Ok().json(obj));
+        }
+    }
 }
