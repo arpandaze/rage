@@ -3,7 +3,7 @@ CREATE TABLE users (
   first_name VARCHAR(15) NOT NULL,
   middle_name VARCHAR(15),
   last_name VARCHAR(15) NOT NULL,
-  email VARCHAR(50) NOT NULL,
+  email VARCHAR(50) NOT NULL UNIQUE,
   phone VARCHAR(10),
   two_fa_secret VARCHAR,
   hashed_password VARCHAR,
