@@ -5,7 +5,7 @@ CREATE TABLE users (
   last_name VARCHAR(15) NOT NULL,
   email VARCHAR(50) NOT NULL UNIQUE,
   phone VARCHAR(10),
-  two_fa_secret VARCHAR,
+  two_fa_secret VARCHAR(32),
   hashed_password VARCHAR,
   is_verified BOOLEAN DEFAULT(False),
   is_active BOOLEAN DEFAULT(True),
