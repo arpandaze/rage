@@ -43,28 +43,24 @@ pub async fn register_endpoint(
 ) -> Response {
     form_data.validate()?;
 
-    let existing_user = sqlx::query!(
-        "SELECT id FROM users WHERE email=$1",
-        &form_data.email
-    )
-    .fetch_optional(db_pool.as_ref())
-    .await?;
+    let existing_user = sqlx::query!("SELECT id FROM users WHERE email=$1", &form_data.email)
+        .fetch_optional(db_pool.as_ref())
+        .await?;
 
     if existing_user.is_some() {
         return Err(Errors::standard(
             "User with the same email already exists!",
             StatusCode::CONFLICT,
         ));
-        
     }
 
     let user = sqlx::query!(
-        r#"
-            INSERT INTO users
-            (first_name, middle_name, last_name, email, hashed_password)
-            VALUES($1,$2,$3,$4,$5)
-            RETURNING id
-        "#,
+        "\
+            INSERT INTO users \
+            (first_name, middle_name, last_name, email, hashed_password) \
+            VALUES($1,$2,$3,$4,$5) \
+            RETURNING id;\
+        ",
         form_data.first_name,
         form_data.middle_name,
         form_data.last_name,
@@ -112,9 +108,5 @@ pub async fn register_endpoint(
         }
     );
 
-    return Ok(
-        HttpResponse::Created()
-              .json(obj)
-    );
-    
+    return Ok(HttpResponse::Created().json(obj));
 }

@@ -34,6 +34,7 @@ pub struct TTLSettings {
     pub verification_token: usize,
     pub password_reset: usize,
     pub two_fa_enable_timeout: usize,
+    pub two_fa_login_timeout: usize,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

@@ -1,8 +1,9 @@
 use crate::core::constants;
-use crate::core::security::{generate_2fa_secret_token, get_user};
+use crate::core::security::{generate_2fa_secret_token, generate_session_token, get_user};
 use crate::types::*;
 
 use actix_web::{
+    cookie::Cookie,
     http::StatusCode,
     web::{Data, Form},
     HttpRequest, HttpResponse,
@@ -40,7 +41,10 @@ pub async fn enable_2fa_request(
     .await?;
 
     if db_user.two_fa_secret.is_some() {
-        return Err(Errors::standard("2FA already active!", StatusCode::CONFLICT));
+        return Err(Errors::standard(
+            "2FA already active!",
+            StatusCode::CONFLICT,
+        ));
     }
 
     let url = totp.get_url(&db_user.email, &configs.application.name);
@@ -201,4 +205,94 @@ pub async fn disable_2fa(
     );
 
     return Ok(HttpResponse::Ok().json(obj));
+}
+
+#[derive(Validate, Serialize, Deserialize)]
+pub struct TwoFALoginVerifyForm {
+    totp: String,
+}
+
+pub async fn two_fa_login_verify(
+    req: HttpRequest,
+    form_data: Form<TwoFALoginVerifyForm>,
+    db_pool: Data<PgPool>,
+    mail_client: Data<Mailer>,
+    redis_pool: Data<RedisPool>,
+    configs: Data<Settings>,
+) -> Response {
+    match req.cookie("session") {
+        Some(cookie) => {
+            let mut redis_client = redis_pool.get().await?;
+
+            let key = format!("{}_{}", constants::TWO_FA_LOGIN_PREFIX, cookie.value());
+            println!("{:?}", &key);
+
+            #[derive(Deserialize)]
+            struct Login2FATemp {
+                user: String,
+                ttl: usize,
+            }
+
+            let value = redis_client.get::<&String, String>(&key).await?;
+
+            let value_struct = serde_json::from_str::<Login2FATemp>(value.as_str()).unwrap();
+
+            let user = sqlx::query!(
+                "\
+                    SELECT two_fa_secret \
+                    FROM users \
+                    WHERE id=$1::uuid;\
+                ",
+                &uuid::Uuid::parse_str(value_struct.user.as_str())?
+            )
+            .fetch_one(db_pool.as_ref())
+            .await?;
+
+            let two_fa_secret = &user.two_fa_secret.as_ref().unwrap();
+
+            let totp = TOTP::new(Algorithm::SHA1, 6, 1, 30, two_fa_secret);
+            let time = SystemTime::now()
+                .duration_since(SystemTime::UNIX_EPOCH)
+                .unwrap()
+                .as_secs();
+
+            let totp_valid = totp.check(&form_data.totp, time);
+
+            if !totp_valid {
+                return Err(Errors::standard(
+                    "Invalid TOTP token",
+                    StatusCode::FORBIDDEN,
+                ));
+            }
+
+            let session_token = generate_session_token()?;
+
+            redis::pipe()
+                .set_ex(&session_token, value_struct.user, value_struct.ttl)
+                .del(&key)
+                .query_async(&mut redis_client)
+                .await?;
+
+            let obj = json!(
+                {
+                    "message": "Successfully logged in!",
+                }
+            );
+
+            let cookie = Cookie::build("session", &session_token)
+                .domain(&configs.application.domain)
+                .path("/")
+                .secure(if configs.application.protocal == "https" {
+                    true
+                } else {
+                    false
+                })
+                .http_only(true)
+                .finish();
+
+            return Ok(HttpResponse::Ok().cookie(cookie).json(obj));
+        }
+
+        None => Err(Errors::standard("Invalid request!", StatusCode::FORBIDDEN)),
+    }
 }
