@@ -9,14 +9,13 @@ use argon2::{
     password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Argon2,
 };
+use base64::encode_config;
+use rand_core::{OsRng, RngCore};
 use redis::AsyncCommands;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sqlx::PgPool;
 use validator::Validate;
-
-use base64::encode_config;
-use rand_core::{OsRng, RngCore};
 
 pub fn generate_session_token() -> Result<String, crate::core::Errors> {
     let mut session_token = [0u8; 64];
@@ -35,6 +34,14 @@ pub fn generate_email_token() -> Result<String, crate::core::Errors> {
 }
 
 pub fn generate_reset_token() -> Result<String, crate::core::Errors> {
+    let mut session_token = [0u8; 32];
+
+    OsRng.try_fill_bytes(&mut session_token)?;
+
+    return Ok(encode_config(session_token, base64::URL_SAFE_NO_PAD));
+}
+
+pub fn generate_2fa_secret_token() -> Result<String, crate::core::Errors> {
     let mut session_token = [0u8; 64];
 
     OsRng.try_fill_bytes(&mut session_token)?;
@@ -69,7 +76,7 @@ pub fn verify_password(
 // MAYBE: Replace with procedural macro
 #[inline(always)]
 pub async fn get_user(
-    req: &actix_web::web::HttpRequest,
+    req: &actix_web::HttpRequest,
     redis_pool: &RedisPool,
 ) -> Result<uuid::Uuid, Errors> {
     match req.cookie("session") {
