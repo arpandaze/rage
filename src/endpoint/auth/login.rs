@@ -1,3 +1,4 @@
+use crate::core::constants;
 use crate::core::security::{generate_session_token, verify_password};
 use crate::types::*;
 
@@ -24,7 +25,7 @@ pub struct LoginData {
     remember_me: Option<bool>,
 }
 
-pub async fn login_endpoint(
+pub async fn web_login_endpoint(
     form_data: Form<LoginData>,
     db_pool: Data<PgPool>,
     _mail_client: Data<Mailer>,
@@ -34,7 +35,11 @@ pub async fn login_endpoint(
     form_data.validate()?;
 
     let optional_user = sqlx::query!(
-        "SELECT id, two_fa_secret, hashed_password, is_verified, is_active FROM users WHERE email=$1",
+        "\
+            SELECT id, two_fa_secret, hashed_password, is_verified, is_active \
+            FROM users \
+            WHERE email=$1;\
+        ",
         &form_data.email
     )
     .fetch_optional(db_pool.as_ref())
@@ -74,36 +79,86 @@ pub async fn login_endpoint(
         _ => (),
     }
 
-    let session_token = generate_session_token()?;
+    match user.two_fa_secret {
+        Some(two_fa_secret) => {
+            let token = generate_session_token()?;
 
-    let mut redis_client = redis_pool.get().await?;
+            let mut redis_client = redis_pool.get().await?;
 
-    let ttl = if form_data.remember_me.unwrap_or(false) {
-        configs.ttl.session_token_long
-    } else {
-        configs.ttl.session_token_short
-    };
+            let ttl = if form_data.remember_me.unwrap_or(false) {
+                configs.ttl.session_token_long
+            } else {
+                configs.ttl.session_token_short
+            };
 
-    redis_client
-        .set_ex(&session_token, user.id.to_string(), ttl)
-        .await?;
+            let key = format!("{}_{}", constants::TWO_FA_LOGIN_PREFIX, token);
+            let value = json!(
+                {
+                    "user": user.id.to_string(),
+                    "ttl": ttl,
+                }
+            );
 
-    let obj = json!(
-        {
-            "message": "Successfully logged in!"
+            redis_client
+                .set_ex(&key, value.to_string(), configs.ttl.two_fa_login_timeout)
+                .await?;
+
+            println!("{:?}", &key);
+
+            let obj = json!(
+                {
+                    "message": "2FA required before proceeding!",
+                    "two_fa_required": true,
+                }
+            );
+
+            let cookie = Cookie::build("session", &token)
+                .domain(&configs.application.domain)
+                .path("/")
+                .secure(if configs.application.protocal == "https" {
+                    true
+                } else {
+                    false
+                })
+                .http_only(true)
+                .finish();
+
+            return Ok(HttpResponse::Ok().cookie(cookie).json(obj));
         }
-    );
+        None => {
+            let session_token = generate_session_token()?;
 
-    let cookie = Cookie::build("session", &session_token)
-        .domain(&configs.application.domain)
-        .path("/")
-        .secure(if configs.application.protocal == "https" {
-            true
-        } else {
-            false
-        })
-        .http_only(true)
-        .finish();
+            let mut redis_client = redis_pool.get().await?;
 
-    return Ok(HttpResponse::Ok().cookie(cookie).json(obj));
+            let ttl = if form_data.remember_me.unwrap_or(false) {
+                configs.ttl.session_token_long
+            } else {
+                configs.ttl.session_token_short
+            };
+
+            redis_client
+                .set_ex(&session_token, user.id.to_string(), ttl)
+                .await?;
+
+            let obj = json!(
+                {
+                    "message": "Successfully logged in!",
+                    "two_fa_required": false,
+                }
+            );
+
+            let cookie = Cookie::build("session", &session_token)
+                .domain(&configs.application.domain)
+                .path("/")
+                .secure(if configs.application.protocal == "https" {
+                    true
+                } else {
+                    false
+                })
+                .http_only(true)
+                .finish();
+
+            return Ok(HttpResponse::Ok().cookie(cookie).json(obj));
+        }
+    }
 }

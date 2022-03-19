@@ -2,12 +2,9 @@ use rage::core::config::CONFIG;
 use rage::init::run;
 use std::net::TcpListener;
 
-
-
 #[actix_web::main]
 async fn main() -> Result<(), std::io::Error> {
-
-    let address = format!("localhost:{}", CONFIG.application.port);
+    let address = format!("{}:{}", CONFIG.application.host, CONFIG.application.port);
     let listener = TcpListener::bind(address)?;
 
     let db_connection_pool = CONFIG.database.get_db_pool().await;

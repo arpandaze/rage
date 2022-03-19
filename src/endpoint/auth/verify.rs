@@ -30,18 +30,18 @@ pub async fn verify_endpoint(
     match user_id_opt {
         None => {
             return Err(Errors::standard(
-                "Invalid verification token",
+                "Invalid verification token!",
                 StatusCode::UNAUTHORIZED,
             ));
         }
 
         Some(user_id) => {
             sqlx::query!(
-                r#"
-                    UPDATE users
-                    SET is_verified=$1
-                    WHERE id=$2::uuid;
-                "#,
+                "\
+                    UPDATE users \
+                    SET is_verified=$1 \
+                    WHERE id=$2::uuid;\
+                ",
                 true,
                 Uuid::parse_str(&user_id).unwrap(),
             )

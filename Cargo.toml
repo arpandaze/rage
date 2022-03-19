@@ -2,6 +2,7 @@
 edition = "2021"
 name = "rage"
 version = "0.1.0"
+
 [[bin]]
 name = "rage"
 path = "src/main.rs"

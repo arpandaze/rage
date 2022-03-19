@@ -1,3 +1,4 @@
+use crate::core::constants;
 use crate::types::*;
 
 use crate::core::security::generate_reset_token;
@@ -45,7 +46,7 @@ pub async fn forgot_password(
         Some(user) => {
             let reset_token = generate_reset_token()?;
 
-            let key = format!("ereset_{}", reset_token);
+            let key = format!("{}_{}", constants::PASSWORD_RESET_PREFIX, reset_token);
 
             let mut redis_client = redis_pool.get().await?;
 

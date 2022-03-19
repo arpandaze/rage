@@ -1,3 +1,4 @@
+use crate::core::constants;
 use crate::core::security::hash_password;
 use crate::types::*;
 
@@ -30,7 +31,7 @@ pub async fn reset_password(
 ) -> Response {
     let mut redis_conn = redis_pool.get().await?;
 
-    let key = format!("ereset_{}", &form_data.token);
+    let key = format!("{}_{}", constants::PASSWORD_RESET_PREFIX, &form_data.token);
 
     let user_id_opt: Option<String> = redis_conn.get_del(key).await?;
 
@@ -44,13 +45,13 @@ pub async fn reset_password(
 
         Some(user_id) => {
             sqlx::query!(
-                r#"
-                    UPDATE users
-                    SET hashed_password=$1
-                    WHERE id=$2::uuid;
-                "#,
+                "\
+                    UPDATE users \
+                    SET hashed_password=$1 \
+                    WHERE id=$2::uuid;\
+                ",
                 hash_password(&form_data.password)?,
-                Uuid::parse_str(&user_id).unwrap(),
+                Uuid::parse_str(&user_id)?,
             )
             .execute(db_pool.as_ref())
             .await?;

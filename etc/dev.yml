@@ -24,6 +24,7 @@ ttl:
   verification_token: 3600
   password_reset: 3600
   two_fa_enable_timeout: 1800
+  two_fa_login_timeout: 1800
 
 email:
   smtp_host: 127.0.0.1

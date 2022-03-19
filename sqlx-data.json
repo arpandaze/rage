@@ -160,24 +160,6 @@
     },
     "query": "UPDATE users SET is_verified=$1 WHERE id=$2::uuid;"
   },
-  "c62d41de7420ea1132f7577bf2eb4b0ace87f8158c2d8668d5e7a2c34de90f35": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Varchar",
-          "Varchar",
-          "Varchar",
-          "Varchar",
-          "Varchar",
-          "Bool",
-          "Bool"
-        ]
-      }
-    },
-    "query": "INSERT INTO users (first_name, middle_name, last_name, email, hashed_password, is_verified, is_active) VALUES($1,$2,$3,$4,$5,$6,$7);"
-  },
   "cbcd8816a71893b0292c0ba8253d25e0894aac69ff6d872e6cc2668bd336e26e": {
     "describe": {
       "columns": [],
