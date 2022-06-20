@@ -45,11 +45,6 @@ version = "0.6"
 features = ["tokio-comp"]
 git = "https://github.com/arpandaze/redis-rs"
 
-[dependencies.reqwest]
-default-features = false
-features = ["json", "rustls-tls", "cookies"]
-version = "0.11"
-
 [dependencies.serde]
 features = ["derive"]
 version = "1"
@@ -71,6 +66,7 @@ version = "0.12"
 actix-rt = "2"
 fake = "2.3.0"
 linkify = "0.8.0"
+reqwest = { version = "0.11", features = ["json", "rustls-tls", "cookies"] }
 
 [lib]
 name = "rage"
