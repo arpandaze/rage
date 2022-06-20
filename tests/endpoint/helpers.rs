@@ -117,7 +117,7 @@ pub async fn get_logged_in_user_cookie() -> (User, String) {
         password: "testpassword".to_string(),
     };
 
-    let user_id = sqlx::query!(
+    let user_item = sqlx::query!(
         "\
             INSERT INTO users \
             (first_name, middle_name, last_name, email, hashed_password, is_verified, is_active) \
@@ -132,8 +132,8 @@ pub async fn get_logged_in_user_cookie() -> (User, String) {
         true,
         true,
     )
-    .execute(&db_pool)
-    .await;
+    .fetch_one(&db_pool)
+    .await.unwrap();
 
     let session_token = security::generate_session_token().unwrap();
 
@@ -141,13 +141,13 @@ pub async fn get_logged_in_user_cookie() -> (User, String) {
     let mut redis_client = redis_pool.get().await.unwrap();
 
     redis_client
-        .set_ex(
+        .set_ex::<&String, String, usize>(
             &session_token,
-            user_id.to_string(),
+            user_item.id.to_string(),
             CONFIG.ttl.session_token_long,
         )
         .await
         .unwrap();
 
-    return (user, user_token);
+    return (user, session_token);
 }
