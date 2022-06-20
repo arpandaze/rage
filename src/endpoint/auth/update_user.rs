@@ -21,7 +21,7 @@ pub async fn update_user(
 
     let obj = json!(
         {
-            "message": ""
+            "message": "Information sucessfully updated!"
         }
     );
 

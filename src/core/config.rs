@@ -20,6 +20,7 @@ pub struct Settings {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ApplicationSettings {
+    pub name: String,
     pub protocal: String,
     pub domain: String,
     pub host: String,
@@ -32,6 +33,8 @@ pub struct TTLSettings {
     pub session_token_long: usize,
     pub verification_token: usize,
     pub password_reset: usize,
+    pub two_fa_enable_timeout: usize,
+    pub two_fa_login_timeout: usize,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

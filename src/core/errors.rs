@@ -1,8 +1,8 @@
+use crate::core::config::CONFIG;
 use actix_web::http::StatusCode;
 use actix_web::{HttpResponse, ResponseError};
 use derive_more::{Display, Error};
 use serde_json::json;
-use crate::core::config::CONFIG;
 
 #[derive(Debug, Error)]
 pub struct StandardError {
@@ -38,6 +38,9 @@ pub enum Errors {
 
     #[display(fmt = "Redis Error: {}", _0)]
     RedisError(redis::RedisError),
+
+    #[display(fmt = "UUID Error")]
+    UUIDError(uuid::Error),
 
     #[display(fmt = "Standard Error: {}", _0)]
     StandardError(StandardError),
@@ -85,6 +88,12 @@ impl From<deadpool_redis::PoolError> for Errors {
 impl From<redis::RedisError> for Errors {
     fn from(error: redis::RedisError) -> Self {
         return Errors::RedisError(error);
+    }
+}
+
+impl From<uuid::Error> for Errors {
+    fn from(error: uuid::Error) -> Self {
+        return Errors::UUIDError(error);
     }
 }
 
@@ -158,6 +167,15 @@ impl ResponseError for Errors {
                 json!(
                     {
                         "messsage": "Unexpected cache error",
+                    }
+                ),
+            ),
+
+            Self::UUIDError(_) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                json!(
+                    {
+                        "messsage": "Unexpected UUID error",
                     }
                 ),
             ),

@@ -1,7 +1,90 @@
 {
   "db": "PostgreSQL",
-  "452b74de058ed07eeddceb4c9a176a3ae6ff35a9d701b6dfbaab9f59ef392960": {
-    "query": "SELECT id, two_fa_secret, hashed_password, is_verified, is_active FROM users WHERE email=$1",
+  "445e9a371a39d813002bfd26dfe00c93e8024160a5c9649f7ebfa5e600eb5724": {
+    "query": "INSERT INTO users (first_name, middle_name, last_name, email, hashed_password) VALUES($1,$2,$3,$4,$5) RETURNING id;",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Uuid"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Varchar"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "524d9c45a4bdd17251c40492d07cf95f77a17f6cd2cc437cd2b4da7586514755": {
+    "query": "SELECT id, first_name FROM users WHERE email=$1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "first_name",
+          "type_info": "Varchar"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        false
+      ]
+    }
+  },
+  "551cfeaeae40ba5f1c620d3af575505d8e19a86035af5f4debd570a4688c9120": {
+    "query": "UPDATE users SET two_fa_secret=$1 WHERE id=$2::uuid;",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Uuid"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "5ad71fac201536b87cd2eda05aa1baab1a6ce86fe100b8a6840d5ae1c51a3ab8": {
+    "query": "SELECT two_fa_secret FROM users WHERE id=$1::uuid;",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "two_fa_secret",
+          "type_info": "Varchar"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        true
+      ]
+    }
+  },
+  "5f343c782a8047b536028201031ac36e6ff3462c9349ba0ad5923df276bd004c": {
+    "query": "SELECT id, two_fa_secret, hashed_password, is_verified, is_active FROM users WHERE email=$1;",
     "describe": {
       "columns": [
         {
@@ -44,56 +127,6 @@
       ]
     }
   },
-  "524d9c45a4bdd17251c40492d07cf95f77a17f6cd2cc437cd2b4da7586514755": {
-    "query": "SELECT id, first_name FROM users WHERE email=$1",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Uuid"
-        },
-        {
-          "ordinal": 1,
-          "name": "first_name",
-          "type_info": "Varchar"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Text"
-        ]
-      },
-      "nullable": [
-        false,
-        false
-      ]
-    }
-  },
-  "79ef1f5a8e7dd0c8015fdd86e863a9eefbbbddf3113960a68cd723f6f8363054": {
-    "query": "\n            INSERT INTO users\n            (first_name, middle_name, last_name, email, hashed_password)\n            VALUES($1,$2,$3,$4,$5)\n            RETURNING id\n        ",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Uuid"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Varchar",
-          "Varchar",
-          "Varchar",
-          "Varchar",
-          "Varchar"
-        ]
-      },
-      "nullable": [
-        false
-      ]
-    }
-  },
   "a3018327ca3d4d84616113ad8e2e35a14d38f1c1d170040e34fa44da1837545a": {
     "query": "SELECT id FROM users WHERE email=$1",
     "describe": {
@@ -114,8 +147,39 @@
       ]
     }
   },
-  "b65ccd0dbe6fc065c1abaed34aaafca7d4cf26f21fb1d715a1107a8f76a6d193": {
-    "query": "\n                    UPDATE users\n                    SET hashed_password=$1\n                    WHERE id=$2::uuid;\n                ",
+  "a8416ebb4d0aecf9a41611c8e42acd6010059677086db12204db246f699630dc": {
+    "query": "UPDATE users SET is_verified=$1 WHERE id=$2::uuid;",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Bool",
+          "Uuid"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "c62d41de7420ea1132f7577bf2eb4b0ace87f8158c2d8668d5e7a2c34de90f35": {
+    "query": "INSERT INTO users (first_name, middle_name, last_name, email, hashed_password, is_verified, is_active) VALUES($1,$2,$3,$4,$5,$6,$7);",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Bool",
+          "Bool"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "cbcd8816a71893b0292c0ba8253d25e0894aac69ff6d872e6cc2668bd336e26e": {
+    "query": "UPDATE users SET hashed_password=$1 WHERE id=$2::uuid;",
     "describe": {
       "columns": [],
       "parameters": {
@@ -127,17 +191,56 @@
       "nullable": []
     }
   },
-  "eab3741e98ff5089a0d34b436ff418e309bf9ea872f49d35b303bf2863d52230": {
-    "query": "\n                    UPDATE users\n                    SET is_verified=$1\n                    WHERE id=$2::uuid;\n                ",
+  "d919c9e3c272523c990fcfc251f5b93916f74a3df294aadd4b7f04a07262cc2f": {
+    "query": "INSERT INTO users (first_name, middle_name, last_name, email, hashed_password, is_verified, is_active) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING id; ",
     "describe": {
-      "columns": [],
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Uuid"
+        }
+      ],
       "parameters": {
         "Left": [
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Varchar",
           "Bool",
+          "Bool"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "f258650ad9f7603bf2086f3d94597e8c6664eaabad044bcb1a14eb1d73530d1d": {
+    "query": "SELECT email, two_fa_secret FROM users WHERE id=$1::uuid;",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "email",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 1,
+          "name": "two_fa_secret",
+          "type_info": "Varchar"
+        }
+      ],
+      "parameters": {
+        "Left": [
           "Uuid"
         ]
       },
-      "nullable": []
+      "nullable": [
+        false,
+        true
+      ]
     }
   }
 }

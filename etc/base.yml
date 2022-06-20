@@ -1,6 +1,7 @@
 # Base Configuration
 
 application:
+  name: Rage
   protocal: http
   domain: localhost
   host: 127.0.0.1
@@ -25,6 +26,8 @@ ttl:
   session_token_long: 2592000 # 30 days
   verification_token: 3600
   password_reset: 3600
+  two_fa_enable_timeout: 1800
+  two_fa_login_timeout: 1800
 
 email:
   smtp_host: 127.0.0.1
