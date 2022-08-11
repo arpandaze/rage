@@ -3,6 +3,7 @@ use actix_web::http::StatusCode;
 use actix_web::{HttpResponse, ResponseError};
 use derive_more::{Display, Error};
 use serde_json::json;
+use uuid::Uuid;
 
 #[derive(Debug, Error)]
 pub struct StandardError {
@@ -104,6 +105,7 @@ impl From<StandardError> for Errors {
 }
 
 impl ResponseError for Errors {
+    #[tracing::instrument(name = "Error Handler")]
     fn error_response(&self) -> HttpResponse {
         let (status_code, body) = match self {
             Self::Validation(e) => (

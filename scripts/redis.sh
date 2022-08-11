@@ -19,4 +19,4 @@ docker run --name actix_redis \
   -h redis \
   -e REDIS_PASSWORD=redispass \
   -p 6379:6379 \
-  -d redis:6-alpine /bin/sh -c 'redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}'
+  -d redis:6-alpine /bin/sh -c 'redis-server --requirepass ${REDIS_PASSWORD}'

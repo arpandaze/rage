@@ -12,6 +12,8 @@ use redis::AsyncCommands;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sqlx::PgPool;
+use tracing::Instrument;
+use uuid::Uuid;
 use validator::Validate;
 
 #[derive(Validate, Serialize, Deserialize)]
@@ -25,6 +27,14 @@ pub struct LoginData {
     remember_me: Option<bool>,
 }
 
+#[tracing::instrument(
+    name = "Web Login Endpoint",
+    skip(db_pool, _mail_client, redis_pool, configs, form_data),
+    fields(
+        request_id = %Uuid::new_v4(),
+        login_email = %form_data.email,
+    ),
+)]
 pub async fn web_login_endpoint(
     form_data: Form<LoginData>,
     db_pool: Data<PgPool>,
