@@ -1,6 +1,7 @@
 use crate::core::security::{generate_email_token, hash_password};
 use crate::types::*;
 
+use crate::utils::validator::password_validator;
 use actix_web::{
     http::StatusCode,
     web::{Data, Form},
@@ -9,13 +10,15 @@ use actix_web::{
 use handlebars::Handlebars;
 use lettre::{AsyncTransport, Message};
 use redis::AsyncCommands;
+use secrecy::{ExposeSecret, SecretString};
+use secrecy::{Secret, SerializableSecret};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sqlx::PgPool;
 use std::option::Option;
 use validator::Validate;
 
-#[derive(Validate, Serialize, Deserialize)]
+#[derive(Validate, Deserialize)]
 pub struct RegisterData {
     #[validate(length(max = 15))]
     first_name: String,
@@ -29,8 +32,7 @@ pub struct RegisterData {
     #[validate(email)]
     email: String,
 
-    #[validate(length(min = 8, max = 32))]
-    password: String,
+    password: SecretString,
 }
 
 // TODO: Verification link should point to frontend verification page
@@ -42,6 +44,7 @@ pub async fn register_endpoint(
     configs: Data<Settings>,
 ) -> Response {
     form_data.validate()?;
+    password_validator(&form_data.password)?;
 
     let existing_user = sqlx::query!("SELECT id FROM users WHERE email=$1", &form_data.email)
         .fetch_optional(db_pool.as_ref())
@@ -65,7 +68,7 @@ pub async fn register_endpoint(
         form_data.middle_name,
         form_data.last_name,
         form_data.email,
-        hash_password(&form_data.password)?,
+        hash_password(form_data.password.expose_secret())?,
     )
     .fetch_one(db_pool.as_ref())
     .await?;

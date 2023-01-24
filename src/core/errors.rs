@@ -20,7 +20,10 @@ impl std::fmt::Display for StandardError {
 #[derive(Debug, Display, Error)]
 pub enum Errors {
     #[display(fmt = "Validation Error: {}", _0)]
-    Validation(validator::ValidationErrors),
+    Validation(validator::ValidationError),
+
+    #[display(fmt = "Validation Errors: {}", _0)]
+    Validations(validator::ValidationErrors),
 
     #[display(fmt = "SQL Error: {}", _0)]
     SQL(sqlx::Error),
@@ -48,11 +51,20 @@ pub enum Errors {
 
     #[display(fmt = "Invalid Session Error")]
     InvalidSessionError,
+
+    #[display(fmt = "TOTP URL Error")]
+    TOTPError(totp_rs::TotpUrlError),
+}
+
+impl From<validator::ValidationError> for Errors {
+    fn from(error: validator::ValidationError) -> Self {
+        return Errors::Validation(error);
+    }
 }
 
 impl From<validator::ValidationErrors> for Errors {
     fn from(error: validator::ValidationErrors) -> Self {
-        return Errors::Validation(error);
+        return Errors::Validations(error);
     }
 }
 
@@ -104,16 +116,31 @@ impl From<StandardError> for Errors {
     }
 }
 
+impl From<totp_rs::TotpUrlError> for Errors {
+    fn from(error: totp_rs::TotpUrlError) -> Self {
+        return Errors::TOTPError(error);
+    }
+}
+
 impl ResponseError for Errors {
     #[tracing::instrument(name = "Error Handler")]
     fn error_response(&self) -> HttpResponse {
         let (status_code, body) = match self {
-            Self::Validation(e) => (
+            Self::Validations(e) => (
                 StatusCode::UNPROCESSABLE_ENTITY,
                 json!(
                     {
                         "message": "Validation Error",
                         "fields": e.field_errors(),
+                    }
+                ),
+            ),
+
+            Self::Validation(e) => (
+                StatusCode::UNPROCESSABLE_ENTITY,
+                json!(
+                    {
+                        "message": e.message,
                     }
                 ),
             ),
@@ -209,6 +236,15 @@ impl ResponseError for Errors {
 
                 return response;
             }
+
+            Self::TOTPError(e) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                json!(
+                    {
+                        "message": "An unknown error occured!",
+                    }
+                ),
+            ),
         };
 
         return HttpResponse::build(status_code).json(body);
@@ -219,7 +255,7 @@ impl Errors {
     pub fn standard(message: &str, status_code: StatusCode) -> Errors {
         return Errors::StandardError(StandardError {
             detail: message.to_string(),
-            status_code: status_code,
+            status_code,
         });
     }
 }

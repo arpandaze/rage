@@ -26,13 +26,6 @@ pub async fn enable_2fa_request(
 ) -> Response {
     let user_id = get_user(&req, &redis_pool).await?;
 
-    let two_fa_secret = crate::core::security::generate_2fa_secret_token()?;
-    let totp = TOTP::new(Algorithm::SHA1, 6, 1, 30, &two_fa_secret);
-    let time = SystemTime::now()
-        .duration_since(SystemTime::UNIX_EPOCH)
-        .unwrap()
-        .as_secs();
-
     let db_user = sqlx::query!(
         "SELECT email, two_fa_secret FROM users WHERE id=$1::uuid;",
         &user_id
@@ -47,7 +40,23 @@ pub async fn enable_2fa_request(
         ));
     }
 
-    let url = totp.get_url(&db_user.email, &configs.application.name);
+    let two_fa_secret = crate::core::security::generate_2fa_secret_token()?;
+    let totp = TOTP::new(
+        Algorithm::SHA1,
+        6,
+        1,
+        30,
+        two_fa_secret.clone().into(),
+        Some(db_user.email),
+        configs.application.name.clone(),
+    )?;
+
+    let time = SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
+
+    let url = totp.get_url();
 
     let temp_token = crate::core::security::generate_2fa_secret_token()?;
 
@@ -115,7 +124,16 @@ pub async fn enable_2fa_confirm(
 
     match (two_fa_secret_opt, two_fa_user_opt) {
         (Some(two_fa_secret), Some(two_fa_user)) => {
-            let totp = TOTP::new(Algorithm::SHA1, 6, 1, 30, &two_fa_secret);
+            let totp = TOTP::new(
+                Algorithm::SHA1,
+                6,
+                1,
+                30,
+                two_fa_secret.clone().into(),
+                None,
+                String::new(),
+            )?;
+
             let time = SystemTime::now()
                 .duration_since(SystemTime::UNIX_EPOCH)
                 .unwrap()
@@ -248,9 +266,18 @@ pub async fn two_fa_login_verify(
             .fetch_one(db_pool.as_ref())
             .await?;
 
-            let two_fa_secret = &user.two_fa_secret.as_ref().unwrap();
+            let two_fa_secret = user.two_fa_secret.as_ref().unwrap();
 
-            let totp = TOTP::new(Algorithm::SHA1, 6, 1, 30, two_fa_secret);
+            let totp = TOTP::new(
+                Algorithm::SHA1,
+                6,
+                1,
+                30,
+                two_fa_secret.clone().into(),
+                None,
+                String::new(),
+            )?;
+
             let time = SystemTime::now()
                 .duration_since(SystemTime::UNIX_EPOCH)
                 .unwrap()

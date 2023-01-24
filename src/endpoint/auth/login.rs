@@ -9,6 +9,7 @@ use actix_web::{
     HttpResponse,
 };
 use redis::AsyncCommands;
+use secrecy::{ExposeSecret, Secret};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sqlx::PgPool;
@@ -16,13 +17,12 @@ use tracing::Instrument;
 use uuid::Uuid;
 use validator::Validate;
 
-#[derive(Validate, Serialize, Deserialize)]
+#[derive(Validate, Deserialize)]
 pub struct LoginData {
     #[validate(email)]
     email: String,
 
-    #[validate(length(min = 8, max = 32))]
-    password: String,
+    password: Secret<String>,
 
     remember_me: Option<bool>,
 }
@@ -64,7 +64,11 @@ pub async fn web_login_endpoint(
 
     let user = optional_user.unwrap();
 
-    if verify_password(&form_data.password, &user.hashed_password.unwrap())? == false {
+    if verify_password(
+        &form_data.password.expose_secret(),
+        &user.hashed_password.unwrap(),
+    )? == false
+    {
         return Err(Errors::standard(
             "Invalid username or password!",
             StatusCode::UNAUTHORIZED,

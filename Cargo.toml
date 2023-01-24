@@ -8,58 +8,31 @@ name = "rage"
 path = "src/main.rs"
 
 [dependencies]
-actix-web = "4"
+actix-web = "4.1"
+redis = { version = "0.22.3", features = ["tokio-comp"] }
+deadpool-redis = { version = "0.11.1", features = ["rt_tokio_1"] }
 base64 = "0.13.0"
 config = "0.11.0"
 derive_more = "0.99"
 handlebars = "4.2.0"
-log = "*"
+totp-rs = { version = "4.2.0", features = ["otpauth"] }
 rand = "0.8.4"
 serde_json = "1.0"
-uuid = { version = "0.8", features = ["v4"] }
-totp-rs = "0.7.4"
+secrecy = { version = "0.8", features = ["serde"] }
+uuid = { version = "1.2.2", features = ["v4"] }
 tracing-futures = "0.2.5"
 tracing-subscriber = { version = "0.3.7", features = ["registry", "env-filter"] }
 lazy_static = "1.4.0"
 tracing-log = "0.1.2"
 tracing-bunyan-formatter = "0.3.2"
-
-[dependencies.argon2]
-features = ["std"]
-version = "0.3"
-
-[dependencies.deadpool-redis]
-features = ["rt_tokio_1"]
-path = "../deadpool/redis"
-
-[dependencies.lettre]
-features = ["tokio1-native-tls"]
-version = "0.10.0-rc.4"
-
-[dependencies.rand_core]
-features = ["std"]
-version = "0.6"
-
-[dependencies.redis]
-features = ["tokio-comp"]
-git = "https://github.com/arpandaze/redis-rs"
-
-[dependencies.serde]
-features = ["derive"]
-version = "1"
-
-[dependencies.sqlx]
-default-features = false
-features = ["runtime-actix-rustls", "macros", "postgres", "uuid", "chrono", "migrate", "offline"]
-version = "0.5"
-
-[dependencies.tracing]
-features = ["log"]
-version = "0.1"
-
-[dependencies.validator]
-features = ["derive"]
-version = "0.12"
+argon2 = { version = "0.4.1", features = ["std"] }
+lettre = { version = "0.10.1", features = ["tokio1-native-tls"] }
+rand_core = { version = "0.6.4", features = ["std"] }
+serde = { version = "1.0.152", features = ["derive"] }
+sqlx = { version = "0.6.2", default-features = false, features = ["runtime-actix-rustls", "macros", "postgres", "uuid", "chrono", "migrate", "offline"] }
+tracing = { version = "0.1.37", features = ["log"] }
+validator = { version = "0.16.0", features = ["derive"] }
+log = "0.4.17"
 
 [dev-dependencies]
 actix-rt = "2"

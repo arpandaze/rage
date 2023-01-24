@@ -8,18 +8,17 @@ use actix_web::{
     HttpResponse,
 };
 use redis::AsyncCommands;
+use secrecy::{ExposeSecret, SecretString};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sqlx::PgPool;
 use uuid::Uuid;
 use validator::Validate;
 
-#[derive(Validate, Serialize, Deserialize)]
+#[derive(Validate, Deserialize)]
 pub struct ResetData {
     token: String,
-
-    #[validate(length(min = 8, max = 32))]
-    password: String,
+    password: SecretString,
 }
 
 pub async fn reset_password(
@@ -50,7 +49,7 @@ pub async fn reset_password(
                     SET hashed_password=$1 \
                     WHERE id=$2::uuid;\
                 ",
-                hash_password(&form_data.password)?,
+                hash_password(&form_data.password.expose_secret())?,
                 Uuid::parse_str(&user_id)?,
             )
             .execute(db_pool.as_ref())
