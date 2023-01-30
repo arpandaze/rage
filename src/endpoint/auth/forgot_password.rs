@@ -36,12 +36,10 @@ pub async fn forgot_password(
     .await?;
 
     match user_opt {
-        None => {
-            return Err(Errors::standard(
-                "Account associated with the provided email not found",
-                StatusCode::NOT_FOUND,
-            ));
-        }
+        None => Err(Errors::standard(
+            "Account associated with the provided email not found",
+            StatusCode::NOT_FOUND,
+        )),
 
         Some(user) => {
             let reset_token = generate_reset_token()?;
@@ -83,7 +81,7 @@ pub async fn forgot_password(
                 }
             );
 
-            return Ok(HttpResponse::Ok().json(obj));
+            Ok(HttpResponse::Ok().json(obj))
         }
     }
 }

@@ -66,19 +66,19 @@ pub struct EmailSettings {
 impl ApplicationSettings {
     pub fn get_base_url(&self) -> String {
         if self.port == 80 {
-            return format!("{}://{}", self.protocal, self.domain);
+            format!("{}://{}", self.protocal, self.domain)
         } else {
-            return format!("{}://{}:{}", self.protocal, self.domain, self.port);
+            format!("{}://{}:{}", self.protocal, self.domain, self.port)
         }
     }
 }
 
 impl DatabaseSettings {
     pub fn get_uri(&self) -> String {
-        return format!(
+        format!(
             "postgres://{}:{}@{}:{}/{}",
             self.username, self.password, self.host, self.port, self.database_name
-        );
+        )
     }
 
     pub async fn get_db_pool(&self) -> PgPool {
@@ -86,24 +86,24 @@ impl DatabaseSettings {
             .await
             .expect("Failed to connect to database!");
 
-        return connection_pool;
+        connection_pool
     }
 }
 
 impl RedisSettings {
     pub fn get_uri(&self) -> String {
-        return format!(
+        format!(
             "redis://{}:{}@{}:{}",
             self.username, self.password, self.host, self.port
-        );
+        )
     }
 
     pub async fn get_redis_pool(&self) -> deadpool_redis::Pool {
         let mut redis_config = RedisConfig::from_url(self.get_uri());
         redis_config.pool = Some(PoolConfig::new(32));
-        return redis_config
+        redis_config
             .create_pool(Some(deadpool_redis::Runtime::Tokio1))
-            .unwrap();
+            .unwrap()
     }
 }
 
@@ -111,13 +111,10 @@ impl EmailSettings {
     pub async fn get_client(&self) -> crate::types::Mailer {
         let creds = Credentials::new(self.smtp_username.clone(), self.smtp_password.clone());
 
-        let mailer =
-            AsyncSmtpTransport::<Tokio1Executor>::builder_dangerous(self.smtp_host.clone())
-                .port(self.smtp_port.clone())
-                .credentials(creds)
-                .build();
-
-        return mailer;
+        AsyncSmtpTransport::<Tokio1Executor>::builder_dangerous(self.smtp_host.clone())
+            .port(self.smtp_port)
+            .credentials(creds)
+            .build()
     }
 }
 
@@ -140,7 +137,7 @@ pub fn get_config() -> Result<Settings, config::ConfigError> {
     // E.g. `APP_APPLICATION__PORT=5001 would set `Settings.application.port`
     settings.merge(config::Environment::with_prefix("app").separator("__"))?;
 
-    return settings.try_into();
+    settings.try_into()
 }
 
 pub enum Environment {
@@ -167,8 +164,7 @@ impl TryFrom<String> for Environment {
             "dev" => Ok(Self::Development),
             "prod" => Ok(Self::Production),
             other => Err(format!(
-                "{} is not a supported environment. Use either `dev` or `prod`.",
-                other
+                "{other} is not a supported environment. Use either `dev` or `prod`."
             )),
         }
     }

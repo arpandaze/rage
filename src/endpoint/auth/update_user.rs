@@ -23,5 +23,5 @@ pub async fn update_user(
         }
     );
 
-    return Ok(HttpResponse::Ok().json(obj));
+    Ok(HttpResponse::Ok().json(obj))
 }

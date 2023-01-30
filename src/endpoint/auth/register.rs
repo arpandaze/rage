@@ -77,7 +77,7 @@ pub async fn register_endpoint(
 
     let mut redis_connection = redis_pool.get().await?;
 
-    let key = format!("evtoken_{}", verification_token);
+    let key = format!("evtoken_{verification_token}");
 
     redis_connection
         .set_ex(&key, &user.id.to_string(), configs.ttl.verification_token)
@@ -103,7 +103,7 @@ pub async fn register_endpoint(
         .body(content)
         .unwrap();
 
-    let _ = mail_client.as_ref().send(email).await?;
+    mail_client.as_ref().send(email).await?;
 
     let obj = json!(
         {
@@ -111,5 +111,5 @@ pub async fn register_endpoint(
         }
     );
 
-    return Ok(HttpResponse::Created().json(obj));
+    Ok(HttpResponse::Created().json(obj))
 }

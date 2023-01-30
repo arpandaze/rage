@@ -64,11 +64,10 @@ pub async fn web_login_endpoint(
 
     let user = optional_user.unwrap();
 
-    if verify_password(
-        &form_data.password.expose_secret(),
+    if !(verify_password(
+        form_data.password.expose_secret(),
         &user.hashed_password.unwrap(),
-    )? == false
-    {
+    )?) {
         return Err(Errors::standard(
             "Invalid username or password!",
             StatusCode::UNAUTHORIZED,
@@ -129,11 +128,7 @@ pub async fn web_login_endpoint(
             let cookie = Cookie::build("session", &token)
                 .domain(&configs.application.domain)
                 .path("/")
-                .secure(if configs.application.protocal == "https" {
-                    true
-                } else {
-                    false
-                })
+                .secure(configs.application.protocal == "https")
                 .http_only(true)
                 .finish();
 
@@ -164,11 +159,7 @@ pub async fn web_login_endpoint(
             let cookie = Cookie::build("session", &session_token)
                 .domain(&configs.application.domain)
                 .path("/")
-                .secure(if configs.application.protocal == "https" {
-                    true
-                } else {
-                    false
-                })
+                .secure(configs.application.protocal == "https")
                 .http_only(true)
                 .finish();
 
