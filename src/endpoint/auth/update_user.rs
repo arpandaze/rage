@@ -17,18 +17,11 @@ pub async fn update_user(
     redis_pool: actix_web::web::Data<RedisPool>,
     configs: actix_web::web::Data<Settings>,
 ) -> Response {
-    
-
     let obj = json!(
         {
             "message": "Information sucessfully updated!"
         }
     );
 
-    return Ok(
-        HttpResponse::Ok()
-              .json(obj)
-    );
-    
+    Ok(HttpResponse::Ok().json(obj))
 }
-

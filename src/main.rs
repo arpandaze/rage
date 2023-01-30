@@ -11,7 +11,7 @@ async fn main() -> Result<(), std::io::Error> {
     let redis_connection_pool = CONFIG.redis.get_redis_pool().await;
     let mailer = CONFIG.email.get_client().await;
 
-    let _ = run(
+    run(
         CONFIG.clone(),
         listener,
         db_connection_pool,

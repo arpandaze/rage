@@ -1,0 +1,27 @@
+name: Coverage
+
+on: [push, pull_request]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  coverage:
+    name: Code coverage
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v3.3.0
+        with:
+          lfs: true
+          fetch-depth: 0
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Generate coverage file
+        run: |
+          cargo install cargo-tarpaulin --vers "^0.13"
+          cargo tarpaulin --ignore-tests

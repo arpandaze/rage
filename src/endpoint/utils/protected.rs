@@ -8,7 +8,6 @@ pub async fn protected_endpoint(req: HttpRequest, redis_pool: Data<RedisPool>) -
     return Ok(HttpResponse::Ok()
         .content_type("application/health+json")
         .body(format!(
-            r#"{{ "status": "ok", "protected": true, "user": "{}" }}"#,
-            user_id
+            r#"{{ "status": "ok", "protected": true, "user": "{user_id}" }}"#
         )));
 }

@@ -25,6 +25,7 @@ pub async fn run(
     let redis_pool_data = Data::new(redis_pool);
     let mailer = Data::new(mailer);
 
+    #[allow(clippy::let_unit_value)]
     let server = HttpServer::new(move || {
         App::new()
             .wrap(Logger::default())
@@ -39,5 +40,5 @@ pub async fn run(
     .run()
     .await?;
 
-    return Ok(server);
+    Ok(server)
 }

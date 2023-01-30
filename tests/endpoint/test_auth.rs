@@ -1,16 +1,16 @@
 use serde_json::json;
 
-use crate::helpers::{get_unverified_user, get_verified_user, User, get_email, clear_emails};
+use crate::helpers::{get_email, get_verified_user, User};
 use reqwest::cookie::Cookie;
 use std::{thread, time};
 
 async fn signup_random_user() -> User {
     let user_name = uuid::Uuid::new_v4().to_string();
     let signup_data = User {
-        first_name: user_name.get(0..10).clone().unwrap().to_string(),
+        first_name: user_name.get(0..10).unwrap().to_string(),
         middle_name: "Test".to_string(),
         last_name: "User".to_string(),
-        email: format!("{}@app.local", user_name),
+        email: format!("{user_name}@app.local"),
         password: "testpassword".to_string(),
     };
 
@@ -28,7 +28,7 @@ async fn signup_random_user() -> User {
         "(Regular) Response Text: {:?}",
         &regular_signup.text().await.unwrap(),
     );
-    return signup_data;
+    signup_data
 }
 
 #[actix_rt::test]
@@ -74,7 +74,7 @@ async fn test_verify() {
 
 #[actix_rt::test]
 async fn test_login() {
-    let user = get_verified_user().await;
+    let user = get_verified_user().await.unwrap();
 
     let login_data = json!({
         "email": user.email,
@@ -102,7 +102,7 @@ async fn test_login() {
 
 #[actix_rt::test]
 async fn test_totp_enable() {
-    let user = get_verified_user().await;
+    let _user = get_verified_user().await.unwrap();
 
     let client = reqwest::Client::new();
 

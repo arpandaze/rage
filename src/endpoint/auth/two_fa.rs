@@ -62,7 +62,7 @@ pub async fn enable_2fa_request(
 
     let mut redis_client = redis_pool.get().await?;
 
-    let redis_pipe = redis::pipe()
+    redis::pipe()
         .set_ex::<String, String>(
             format!("{}_{}", constants::TWO_FA_USER_PREFIX, temp_token),
             user_id.to_string(),
@@ -84,7 +84,7 @@ pub async fn enable_2fa_request(
         }
     );
 
-    return Ok(HttpResponse::Ok().json(obj));
+    Ok(HttpResponse::Ok().json(obj))
 }
 
 #[derive(Validate, Serialize, Deserialize)]
@@ -184,7 +184,7 @@ pub async fn enable_2fa_confirm(
         }
     );
 
-    return Ok(HttpResponse::Ok().json(obj));
+    Ok(HttpResponse::Ok().json(obj))
 }
 
 // TODO: Send email on 2FA disable ??
@@ -222,7 +222,7 @@ pub async fn disable_2fa(
         }
     );
 
-    return Ok(HttpResponse::Ok().json(obj));
+    Ok(HttpResponse::Ok().json(obj))
 }
 
 #[derive(Validate, Serialize, Deserialize)]
@@ -309,11 +309,7 @@ pub async fn two_fa_login_verify(
             let cookie = Cookie::build("session", &session_token)
                 .domain(&configs.application.domain)
                 .path("/")
-                .secure(if configs.application.protocal == "https" {
-                    true
-                } else {
-                    false
-                })
+                .secure(configs.application.protocal == "https")
                 .http_only(true)
                 .finish();
 

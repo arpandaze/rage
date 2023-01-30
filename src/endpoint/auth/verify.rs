@@ -28,12 +28,10 @@ pub async fn verify_endpoint(
     let user_id_opt: Option<String> = redis_conn.get_del(key).await?;
 
     match user_id_opt {
-        None => {
-            return Err(Errors::standard(
-                "Invalid verification token!",
-                StatusCode::UNAUTHORIZED,
-            ));
-        }
+        None => Err(Errors::standard(
+            "Invalid verification token!",
+            StatusCode::UNAUTHORIZED,
+        )),
 
         Some(user_id) => {
             sqlx::query!(
@@ -54,7 +52,7 @@ pub async fn verify_endpoint(
                 }
             );
 
-            return Ok(HttpResponse::Ok().json(obj));
+            Ok(HttpResponse::Ok().json(obj))
         }
     }
 }

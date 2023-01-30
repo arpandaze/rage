@@ -35,12 +35,10 @@ pub async fn reset_password(
     let user_id_opt: Option<String> = redis_conn.get_del(key).await?;
 
     match user_id_opt {
-        None => {
-            return Err(Errors::standard(
-                "Invalid or expired token",
-                StatusCode::UNAUTHORIZED,
-            ));
-        }
+        None => Err(Errors::standard(
+            "Invalid or expired token",
+            StatusCode::UNAUTHORIZED,
+        )),
 
         Some(user_id) => {
             sqlx::query!(
@@ -61,7 +59,7 @@ pub async fn reset_password(
                 }
             );
 
-            return Ok(HttpResponse::Ok().json(obj));
+            Ok(HttpResponse::Ok().json(obj))
         }
     }
 }

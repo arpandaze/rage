@@ -1,7 +1,7 @@
 use rage::core::security;
 use serde::{Deserialize, Serialize};
-use serde_json::json;
-use std::{thread, time};
+
+pub use rage::core::Errors;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct User {
@@ -16,7 +16,7 @@ pub struct User {
 pub async fn clear_emails() {
     let client = reqwest::Client::new();
 
-    let _ = client
+    client
         .delete("http://localhost:8025/api/v1/messages")
         .send()
         .await
@@ -33,7 +33,7 @@ pub async fn get_emails() -> serde_json::Value {
         .await
         .unwrap();
 
-    return serde_json::from_str(&test.text().await.unwrap().as_str()).unwrap();
+    return serde_json::from_str(test.text().await.unwrap().as_str()).unwrap();
 }
 
 #[inline(always)]
@@ -52,29 +52,29 @@ pub async fn get_email(for_user: String) -> Option<serde_json::Value> {
             return Some(email.to_owned());
         }
     }
-    return None;
+    None
 }
 
-pub async fn get_unverified_user() -> () {
+pub async fn get_unverified_user() {
     use rage::core::config::CONFIG;
-    let db_pool = CONFIG.database.get_db_pool().await;
+    let _db_pool = CONFIG.database.get_db_pool().await;
 }
 
-pub async fn get_verified_user() -> User {
+pub async fn get_verified_user() -> Result<User, Errors> {
     use rage::core::config::CONFIG;
 
     let db_pool = CONFIG.database.get_db_pool().await;
 
     let user_name = uuid::Uuid::new_v4().to_string();
     let user = User {
-        first_name: user_name.get(0..10).clone().unwrap().to_string(),
+        first_name: user_name.get(0..10).unwrap().to_string(),
         middle_name: "Test".to_string(),
         last_name: "User".to_string(),
-        email: format!("{}@app.local", user_name),
+        email: format!("{user_name}@app.local"),
         password: "testpassword".to_string(),
     };
 
-    let _ = sqlx::query!(
+    sqlx::query!(
         "\
             INSERT INTO users \
             (first_name, middle_name, last_name, email, hashed_password, is_verified, is_active) \
@@ -89,20 +89,20 @@ pub async fn get_verified_user() -> User {
         true,
     )
     .execute(&db_pool)
-    .await;
+    .await?;
 
-    return user;
+    Ok(user)
 }
 
-pub async fn get_verified_user_with_token() -> (User, String) {
-    let user = get_verified_user().await;
+pub async fn get_verified_user_with_token() -> Result<(User, String), Errors> {
+    let user = get_verified_user().await?;
 
-    let user_token = security::generate_session_token().unwrap();
+    let user_token = security::generate_session_token()?;
 
-    return (user, user_token);
+    Ok((user, user_token))
 }
 
-pub async fn get_logged_in_user_cookie() -> (User, String) {
+pub async fn get_logged_in_user_cookie() -> Result<(User, String), Errors> {
     use rage::core::config::CONFIG;
     use redis::AsyncCommands;
 
@@ -110,10 +110,10 @@ pub async fn get_logged_in_user_cookie() -> (User, String) {
 
     let user_name = uuid::Uuid::new_v4().to_string();
     let user = User {
-        first_name: user_name.get(0..10).clone().unwrap().to_string(),
+        first_name: user_name.get(0..10).unwrap().to_string(),
         middle_name: "Test".to_string(),
         last_name: "User".to_string(),
-        email: format!("{}@app.local", user_name),
+        email: format!("{user_name}@app.local"),
         password: "testpassword".to_string(),
     };
 
@@ -128,17 +128,17 @@ pub async fn get_logged_in_user_cookie() -> (User, String) {
         user.middle_name,
         user.last_name,
         user.email,
-        security::hash_password(&user.password).unwrap(),
+        security::hash_password(&user.password)?,
         true,
         true,
     )
     .fetch_one(&db_pool)
-    .await.unwrap();
+    .await?;
 
-    let session_token = security::generate_session_token().unwrap();
+    let session_token = security::generate_session_token()?;
 
     let redis_pool = CONFIG.redis.get_redis_pool().await;
-    let mut redis_client = redis_pool.get().await.unwrap();
+    let mut redis_client = redis_pool.get().await?;
 
     redis_client
         .set_ex::<&String, String, usize>(
@@ -146,8 +146,7 @@ pub async fn get_logged_in_user_cookie() -> (User, String) {
             user_item.id.to_string(),
             CONFIG.ttl.session_token_long,
         )
-        .await
-        .unwrap();
+        .await?;
 
-    return (user, session_token);
+    Ok((user, session_token))
 }

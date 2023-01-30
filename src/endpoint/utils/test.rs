@@ -22,10 +22,10 @@ pub async fn test_endpoint(_redis_client: Data<RedisPool>) -> Response {
         .as_secs();
 
     let url = totp.get_url();
-    println!("{}", url);
+    println!("{url}");
 
     let token = totp.generate(time);
-    println!("{}", token);
+    println!("{token}");
 
-    return Ok(HttpResponse::Ok().body("hello"));
+    Ok(HttpResponse::Ok().body("hello"))
 }
