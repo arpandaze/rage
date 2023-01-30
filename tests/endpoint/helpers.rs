@@ -133,7 +133,8 @@ pub async fn get_logged_in_user_cookie() -> (User, String) {
         true,
     )
     .fetch_one(&db_pool)
-    .await.unwrap();
+    .await
+    .unwrap();
 
     let session_token = security::generate_session_token().unwrap();
 

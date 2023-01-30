@@ -1,6 +1,6 @@
 use serde_json::json;
 
-use crate::helpers::{get_unverified_user, get_verified_user, User, get_email, clear_emails};
+use crate::helpers::{clear_emails, get_email, get_unverified_user, get_verified_user, User};
 use reqwest::cookie::Cookie;
 use std::{thread, time};
 
