@@ -116,8 +116,6 @@ pub async fn web_login_endpoint(
                 .set_ex(&key, value.to_string(), configs.ttl.two_fa_login_timeout)
                 .await?;
 
-            println!("{:?}", &key);
-
             let obj = json!(
                 {
                     "message": "2FA required before proceeding!",

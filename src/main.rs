@@ -3,7 +3,7 @@ use rage::init::run;
 use std::net::TcpListener;
 
 #[actix_web::main]
-async fn main() -> Result<(), std::io::Error> {
+async fn main() -> std::io::Result<()> {
     let address = format!("{}:{}", CONFIG.application.host, CONFIG.application.port);
     let listener = TcpListener::bind(address)?;
 
@@ -17,8 +17,7 @@ async fn main() -> Result<(), std::io::Error> {
         db_connection_pool,
         redis_connection_pool,
         mailer,
-    )
-    .await?;
-
-    Ok(())
+        true,
+    )?
+    .await
 }

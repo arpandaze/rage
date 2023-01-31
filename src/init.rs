@@ -5,20 +5,23 @@ use crate::types::*;
 
 use actix_web::middleware::Logger;
 use actix_web::web::Data;
-use actix_web::{App, HttpServer};
+use actix_web::{dev::Server, App, HttpServer};
 // use env_logger::Env;
 use sqlx::PgPool;
 use std::net::TcpListener;
 
-pub async fn run(
+pub fn run(
     configs: Settings,
     tcp_listener: TcpListener,
     db_pool: PgPool,
     redis_pool: RedisPool,
     mailer: Mailer,
-) -> Result<(), std::io::Error> {
-    let subscriber = get_subscriber("rage".to_string(), "info".to_string(), std::io::stdout);
-    init_subscriber(subscriber);
+    logging: bool,
+) -> Result<Server, std::io::Error> {
+    if logging {
+        let subscriber = get_subscriber("rage".to_string(), "info".to_string(), std::io::stdout);
+        init_subscriber(subscriber);
+    }
 
     let configs_data = Data::new(configs);
     let db_pool_data = Data::new(db_pool);
@@ -37,8 +40,7 @@ pub async fn run(
             .app_data(mailer.clone())
     })
     .listen(tcp_listener)?
-    .run()
-    .await?;
+    .run();
 
     Ok(server)
 }
