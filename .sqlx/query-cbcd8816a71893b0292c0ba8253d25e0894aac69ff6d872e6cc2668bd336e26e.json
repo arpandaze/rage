@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE users SET hashed_password=$1 WHERE id=$2::uuid;",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "cbcd8816a71893b0292c0ba8253d25e0894aac69ff6d872e6cc2668bd336e26e"
+}

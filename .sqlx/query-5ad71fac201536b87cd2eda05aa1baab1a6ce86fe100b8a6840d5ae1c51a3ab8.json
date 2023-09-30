@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT two_fa_secret FROM users WHERE id=$1::uuid;",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "two_fa_secret",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "5ad71fac201536b87cd2eda05aa1baab1a6ce86fe100b8a6840d5ae1c51a3ab8"
+}

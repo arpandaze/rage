@@ -1,0 +1,46 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, two_fa_secret, hashed_password, is_verified, is_active FROM users WHERE email=$1;",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "two_fa_secret",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "hashed_password",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "is_verified",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 4,
+        "name": "is_active",
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "5f343c782a8047b536028201031ac36e6ff3462c9349ba0ad5923df276bd004c"
+}

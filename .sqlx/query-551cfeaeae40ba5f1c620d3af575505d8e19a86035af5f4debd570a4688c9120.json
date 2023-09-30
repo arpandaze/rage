@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE users SET two_fa_secret=$1 WHERE id=$2::uuid;",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "551cfeaeae40ba5f1c620d3af575505d8e19a86035af5f4debd570a4688c9120"
+}

@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE users SET is_verified=$1 WHERE id=$2::uuid;",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Bool",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "a8416ebb4d0aecf9a41611c8e42acd6010059677086db12204db246f699630dc"
+}
