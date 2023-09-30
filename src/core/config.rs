@@ -124,20 +124,24 @@ pub fn get_config() -> Result<Settings, config::ConfigError> {
     let base_path = std::env::current_dir().expect("Couldn't determine current directory");
     let config_dir = base_path.join("etc");
 
-    settings.merge(config::File::from(config_dir.join("base")).required(true))?;
-
     let environment: Environment = std::env::var("APP_ENV")
         .unwrap_or_else(|_| "dev".into())
         .try_into()
         .expect("Failed to detect environment");
 
-    settings.merge(config::File::from(config_dir.join(environment.as_str())).required(true))?;
+    let config_builder = config::Config::builder()
+        .add_source(config::File::from(config_dir.join("base")).required(true))
+        
+        // Add in the config file for the running environment
+        .add_source(config::File::from(config_dir.join(environment.as_str())).required(true))
 
-    // Add in settings from environment variables (with a prefix of APP and '__' as separator)
-    // E.g. `APP_APPLICATION__PORT=5001 would set `Settings.application.port`
-    settings.merge(config::Environment::with_prefix("app").separator("__"))?;
+        // Add in settings from environment variables (with a prefix of APP and '__' as separator)
+        // E.g. `APP_APPLICATION__PORT=5001 would set `Settings.application.port`
+        .add_source(config::Environment::with_prefix("app").separator("__"));
 
-    settings.try_into()
+    config_builder
+        .build()?
+        .try_deserialize()
 }
 
 pub enum Environment {

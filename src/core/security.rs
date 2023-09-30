@@ -9,7 +9,7 @@ use argon2::{
     password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Argon2,
 };
-use base64::encode_config;
+use base64::{Engine, alphabet, engine::{self, general_purpose}};
 use rand_core::{OsRng, RngCore};
 use redis::AsyncCommands;
 use serde::{Deserialize, Serialize};
@@ -17,12 +17,17 @@ use serde_json::json;
 use sqlx::PgPool;
 use validator::Validate;
 
+const URLSAFE_BASE64: base64::engine::GeneralPurpose = base64::engine::GeneralPurpose::new(
+    &alphabet::URL_SAFE,
+    general_purpose::NO_PAD,
+);
+
 pub fn generate_session_token() -> Result<String, crate::core::Errors> {
     let mut session_token = [0u8; 64];
 
     OsRng.try_fill_bytes(&mut session_token)?;
 
-    Ok(encode_config(session_token, base64::URL_SAFE_NO_PAD))
+    return Ok(URLSAFE_BASE64.encode(&session_token));
 }
 
 pub fn generate_email_token() -> Result<String, crate::core::Errors> {
@@ -30,7 +35,7 @@ pub fn generate_email_token() -> Result<String, crate::core::Errors> {
 
     OsRng.try_fill_bytes(&mut session_token)?;
 
-    Ok(encode_config(session_token, base64::URL_SAFE_NO_PAD))
+    return Ok(URLSAFE_BASE64.encode(&session_token));
 }
 
 pub fn generate_reset_token() -> Result<String, crate::core::Errors> {
@@ -38,7 +43,7 @@ pub fn generate_reset_token() -> Result<String, crate::core::Errors> {
 
     OsRng.try_fill_bytes(&mut session_token)?;
 
-    Ok(encode_config(session_token, base64::URL_SAFE_NO_PAD))
+    return Ok(URLSAFE_BASE64.encode(&session_token));
 }
 
 pub fn generate_2fa_secret_token() -> Result<String, crate::core::Errors> {
@@ -46,7 +51,7 @@ pub fn generate_2fa_secret_token() -> Result<String, crate::core::Errors> {
 
     OsRng.try_fill_bytes(&mut session_token)?;
 
-    Ok(encode_config(session_token, base64::URL_SAFE_NO_PAD))
+    return Ok(URLSAFE_BASE64.encode(&session_token));
 }
 
 #[inline(always)]
