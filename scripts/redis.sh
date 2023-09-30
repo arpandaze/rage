@@ -2,20 +2,20 @@
 set -x
 set -eo pipefail
 
-if [ "$(docker ps -q -f name=actix_redis)" ]; then
+if [ "$(podman ps -q -f name=actix_redis)" ]; then
     echo "Redis already running!"
     exit
 fi
 
-if [ "$(docker ps -aq -f name=actix_redis)" ]; then
+if [ "$(podman ps -aq -f name=actix_redis)" ]; then
     echo "Launching existing redis container!"
-    docker start actix_redis
+    podman start actix_redis
     exit
 fi
 
 echo "Creating new redis container!"
 
-docker run --name actix_redis \
+podman run --name actix_redis \
   -h redis \
   -e REDIS_PASSWORD=redispass \
   -p 6379:6379 \

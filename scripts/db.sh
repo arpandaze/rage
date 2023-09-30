@@ -9,17 +9,17 @@ DB_NAME="${POSTGRES_DB:=actix}"
 DB_PORT="${POSTGRES_PORT:=5432}"
 
 
-if [ "$(docker ps -q -f name=actix_postgres)" ]; then
+if [ "$(podman ps -q -f name=actix_postgres)" ]; then
     echo "Postgres already running!"
     exit
 fi
 
-if [ "$(docker ps -aq -f name=actix_postgres)" ]; then
+if [ "$(podman ps -aq -f name=actix_postgres)" ]; then
     echo "Launching existing postgres container!"
-    docker start actix_postgres 
+    podman start actix_postgres 
 else
     echo "Creating new postgres container!"
-    docker run --name actix_postgres \
+    podman run --name actix_postgres \
       -e POSTGRES_USER=${DB_USER} \
       -e POSTGRES_PASSWORD=${DB_PASSWORD} \
       -e POSTGRES_DB=${DB_NAME} \
