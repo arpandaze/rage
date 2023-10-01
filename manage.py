@@ -28,17 +28,14 @@ def main(args):
         os.system("cargo watch -x 'run --bin rage'")
 
     elif args[1] == "mig":
-        # os.system(
-        #     "export DATABASE_URL=postgres://postuser:postpass@localhost:5432/actix && cargo sqlx prepare -- --bin rage"
-        # )
         os.system(
             "DATABASE_URL=postgres://postuser:postpass@localhost:5432/actix cargo sqlx prepare --merged -- --all-targets --all-features"
         )
 
-    # elif args[1] == "migtest":
-    #     os.system(
-    #         "DATABASE_URL=postgres://postuser:postpass@localhost:5432/actix cargo sqlx prepare -- --tests --bin rage"
-    #     )
+    elif args[1] == "migtest":
+        os.system(
+            "DATABASE_URL=postgres://postuser:postpass@localhost:5432/actix cargo sqlx prepare -- --tests --bin rage"
+        )
 
 
 if __name__ == "__main__":
