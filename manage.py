@@ -23,6 +23,7 @@ def main(args):
         else:
             os.system("./scripts/redis.sh")
             os.system("./scripts/db.sh")
+            os.system("./scripts/mailpit.sh")
 
     elif args[1] == "start":
         os.system("cargo watch -x 'run --bin rage'")
