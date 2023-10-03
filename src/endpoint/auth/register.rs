@@ -103,7 +103,7 @@ pub async fn register_endpoint(
         .body(content)
         .unwrap();
 
-    mail_client.as_ref().send(email).await?;
+    mail_client.as_ref().send(email).await.unwrap();
 
     let obj = json!(
         {

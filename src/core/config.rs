@@ -131,17 +131,13 @@ pub fn get_config() -> Result<Settings, config::ConfigError> {
 
     let config_builder = config::Config::builder()
         .add_source(config::File::from(config_dir.join("base")).required(true))
-        
         // Add in the config file for the running environment
         .add_source(config::File::from(config_dir.join(environment.as_str())).required(true))
-
         // Add in settings from environment variables (with a prefix of APP and '__' as separator)
         // E.g. `APP_APPLICATION__PORT=5001 would set `Settings.application.port`
         .add_source(config::Environment::with_prefix("app").separator("__"));
 
-    config_builder
-        .build()?
-        .try_deserialize()
+    config_builder.build()?.try_deserialize()
 }
 
 pub enum Environment {
