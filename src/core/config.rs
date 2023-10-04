@@ -82,11 +82,11 @@ impl DatabaseSettings {
     }
 
     pub async fn get_db_pool(&self) -> PgPool {
-        let connection_pool = PgPool::connect(&self.get_uri())
-            .await
-            .expect("Failed to connect to database!");
+        
 
-        connection_pool
+        PgPool::connect(&self.get_uri())
+            .await
+            .expect("Failed to connect to database!")
     }
 }
 

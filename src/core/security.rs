@@ -22,7 +22,7 @@ pub fn generate_session_token() -> Result<String, crate::core::Errors> {
 
     OsRng.try_fill_bytes(&mut session_token)?;
 
-    return Ok(BASE64URL.encode(&session_token));
+    Ok(BASE64URL.encode(&session_token))
 }
 
 pub fn generate_email_token() -> Result<String, crate::core::Errors> {
@@ -30,7 +30,7 @@ pub fn generate_email_token() -> Result<String, crate::core::Errors> {
 
     OsRng.try_fill_bytes(&mut session_token)?;
 
-    return Ok(BASE64URL.encode(&session_token));
+    Ok(BASE64URL.encode(&session_token))
 }
 
 pub fn generate_reset_token() -> Result<String, crate::core::Errors> {
@@ -38,7 +38,7 @@ pub fn generate_reset_token() -> Result<String, crate::core::Errors> {
 
     OsRng.try_fill_bytes(&mut session_token)?;
 
-    return Ok(BASE64URL.encode(&session_token));
+    Ok(BASE64URL.encode(&session_token))
 }
 
 pub fn generate_2fa_secret_token() -> Result<String, crate::core::Errors> {
@@ -46,7 +46,7 @@ pub fn generate_2fa_secret_token() -> Result<String, crate::core::Errors> {
 
     OsRng.try_fill_bytes(&mut session_token)?;
 
-    return Ok(BASE64URL.encode(&session_token));
+    Ok(BASE64URL.encode(&session_token))
 }
 
 #[inline(always)]

@@ -47,11 +47,15 @@ pub async fn spawn_app() -> String {
 pub async fn clear_emails() {
     let client = reqwest::Client::new();
 
-    client
+    let response = client
         .delete("http://localhost:8025/api/v1/messages")
         .send()
         .await
         .unwrap();
+
+    if !response.status().is_success() {
+        panic!("Failed to clear emails!");
+    }
 }
 
 #[inline(always)]
@@ -59,7 +63,7 @@ pub async fn get_emails() -> serde_json::Value {
     let client = reqwest::Client::new();
 
     let test = client
-        .get("http://localhost:8025/api/v2/messages")
+        .get("http://localhost:8025/api/v1/messages")
         .send()
         .await
         .unwrap();
@@ -72,15 +76,23 @@ pub async fn get_email(for_user: String) -> Option<serde_json::Value> {
     let emails = get_emails().await;
 
     for index in 0..emails["count"].as_u64().unwrap() {
-        let email = &emails["items"][index as usize];
+        let email = &emails["messages"][index as usize];
 
-        if email["To"][0]["Mailbox"]
-            .as_str()
-            .unwrap()
-            .to_string()
-            .eq(for_user.get(0..36).unwrap())
-        {
-            return Some(email.to_owned());
+        if email["To"][0]["Address"].as_str().unwrap().eq(&for_user) {
+            let client = reqwest::Client::new();
+
+            let response = client
+                .get(format!(
+                    "http://localhost:8025/api/v1/message/{}",
+                    email["ID"].as_str().unwrap()
+                ))
+                .send()
+                .await
+                .unwrap();
+
+            let body = response.text().await.unwrap();
+
+            return Some(serde_json::from_str(body.as_str()).unwrap());
         }
     }
     None

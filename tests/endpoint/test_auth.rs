@@ -1,7 +1,8 @@
 use serde_json::json;
 
-use crate::helpers::spawn_app;
+use crate::helpers::{clear_emails, spawn_app};
 use crate::helpers::{get_email, get_verified_user, get_verified_user_with_token, User};
+use regex::Regex;
 use reqwest::cookie::Cookie;
 use std::{thread, time};
 
@@ -35,6 +36,7 @@ async fn signup_random_user(base_address: String) -> User {
 
 #[actix_rt::test]
 async fn test_signup() {
+    clear_emails().await;
     let base_address = spawn_app().await;
     signup_random_user(base_address).await;
 }
@@ -52,16 +54,20 @@ async fn test_verify() {
 
     let email = get_email(user.email.clone()).await.unwrap();
 
-    let mut verify_email_string = String::from(email["Content"]["Body"].as_str().unwrap());
-    verify_email_string = verify_email_string.replace("=\r\n", "");
+    let verify_email_string = String::from(email["HTML"].as_str().unwrap());
 
-    let start_point = verify_email_string.find("token&#x3D;").unwrap() + 11; // &#x3D; is "="
-    let end_point = start_point + 86; // Token length is 86
+    let re = Regex::new(r#"token&#x3D;([^&]+)"#).unwrap();
 
-    let mut token = verify_email_string.get(start_point..end_point);
+    let mut token: Option<String> = None;
+    if let Some(captures) = re.captures(&verify_email_string) {
+        if let Some(captured_token) = captures.get(1) {
+            token = Some(captured_token.as_str().to_string());
+        }
+    }
 
     let verify_data = json!({
-        "token": token.take(),
+        // trailing == is not captured by the regex
+        "token": format!("{}==",token.take().unwrap()),
     });
 
     let verify_request = client
