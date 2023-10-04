@@ -82,8 +82,6 @@ impl DatabaseSettings {
     }
 
     pub async fn get_db_pool(&self) -> PgPool {
-        
-
         PgPool::connect(&self.get_uri())
             .await
             .expect("Failed to connect to database!")
