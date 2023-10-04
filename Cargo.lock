@@ -1938,6 +1938,7 @@ dependencies = [
  "rand",
  "rand_core",
  "redis",
+ "regex",
  "reqwest",
  "secrecy",
  "serde",

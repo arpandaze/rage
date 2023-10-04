@@ -33,6 +33,7 @@ sqlx = { version = "0.7.2", default-features = true, features = ["runtime-tokio"
 tracing = { version = "0.1.37", features = ["log"] }
 validator = { version = "0.16.1", features = ["derive"] }
 log = "0.4.20"
+regex = "1.9.6"
 
 [dev-dependencies]
 actix-rt = "2"
