@@ -11,7 +11,7 @@ path = "src/main.rs"
 actix-web = "4.4"
 redis = { version = "0.23.3", features = ["tokio-comp"] }
 deadpool-redis = { version = "0.13.0", features = ["rt_tokio_1"] }
-base64 = "0.21.4"
+data-encoding = "2.4.0"
 config = "0.13.3"
 derive_more = "0.99"
 handlebars = "4.4.0"
